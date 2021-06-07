@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Distrubutes SSO PermissionSet role arn to all regions in SSM parameter store
+
+Parameters:
+  ParameterStorePrefix:
+    Type: String
+    Description: Prefix for the parameters in parameter store
+    Default: /attini/aws-sso-role-names-mapper/
+
+Resources:
+  Trigger:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Triggers on the creation of an SSO PermissionSet role
+      EventPattern: |
+        {
+          "source": [
+            "aws.iam"
+          ],
+          "detail-type": [
+            "AWS API Call via CloudTrail"
+          ],
+          "detail": {
+            "eventSource": [
+              "iam.amazonaws.com"
+            ],
+            "userAgent": [
+                "sso.amazonaws.com"
+              ],
+            "eventName": [
+              "CreateRole",
+              "DeleteRole"
+            ]
+          }
+        }
+      Targets:
+        - Arn: !GetAtt DistributeSSORoleArns.Arn
+          Id: DistributeSSORoleArns
+
+
+  TriggerLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt DistributeSSORoleArns.Arn
+      Principal: events.amazonaws.com
+
+
+  DistributeSSORoleArnsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub
+        - /aws/lambda/${LambdaName}
+        - { LambdaName: !Ref DistributeSSORoleArns }
+      RetentionInDays: 90
+
+  DistributeSSORoleArns:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
+      Description: This lambda will put SSO Permission set role arns into SSM Parameter stor in all avalibe regions
+      Handler: not.used.in.provided.runtime
+      MemorySize: 512
+      Runtime: provided
+      Timeout: 900
+      Environment:
+        Variables:
+          ParameterStorePrefix: !Ref ParameterStorePrefix
+          DISABLE_SIGNAL_HANDLERS: true
+      Policies:
+        Statement:
+          - Effect: Allow
+            Action:
+              - ssm:PutParameter
+              - ssm:DeleteParameter
+            Resource: !Sub arn:aws:ssm:*:${AWS::AccountId}:parameter/ParameterStorePrefix/*
+          - Effect: Allow
+            Action:
+              - ssm:GetParametersByPath
+            Resource: !Sub arn:aws:ssm:*:${AWS::AccountId}:parameter/aws/service/global-infrastructure/regions
