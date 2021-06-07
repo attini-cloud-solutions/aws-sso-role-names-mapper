@@ -52,7 +52,7 @@ function cmd_update() {
 FUNCTION_NAME=AttiniRoleMapper
 HANDLER=io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
 RUNTIME=java11
-ZIP_FILE=fileb:///mnt/c/Dev/Repos/aws-sso-role-names-mapper/attini-role-mapper/target/function.zip
+ZIP_FILE=fileb:///home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/target/function.zip
 
 function usage() {
   [ "_$1" == "_" ] && echo -e "\nUsage (JVM): \n$0 [create|delete|invoke]\ne.g.: $0 invoke"
@@ -71,7 +71,7 @@ fi
 if [ "$1" == "native" ]
 then
   RUNTIME=provided
-  ZIP_FILE=fileb:///mnt/c/Dev/Repos/aws-sso-role-names-mapper/attini-role-mapper/target/function.zip
+  ZIP_FILE=fileb:///home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/target/function.zip
   FUNCTION_NAME=AttiniRoleMapperNative
   LAMBDA_META="--environment Variables={DISABLE_SIGNAL_HANDLERS=true}"
   shift

@@ -59,6 +59,7 @@ Resources:
   DistributeSSORoleArns:
     Type: AWS::Serverless::Function
     Properties:
+      PackageType: Zip
       CodeUri: s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
       Description: This lambda will put SSO Permission set role arns into SSM Parameter stor in all avalibe regions
       Handler: not.used.in.provided.runtime
