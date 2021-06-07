@@ -155,7 +155,7 @@ Resources:
             Action:
               - ssm:PutParameter
               - ssm:DeleteParameter
-            Resource: !Sub arn:aws:ssm:*:${AWS::AccountId}:parameter/ParameterStorePrefix/*
+            Resource: !Sub arn:aws:ssm:*:${AWS::AccountId}:parameter/${ParameterStorePrefix}/*
           - Effect: Allow
             Action:
               - ssm:GetParametersByPath
