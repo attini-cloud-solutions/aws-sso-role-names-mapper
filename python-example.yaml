@@ -159,4 +159,4 @@ Resources:
           - Effect: Allow
             Action:
               - ssm:GetParametersByPath
-            Resource: !Sub arn:aws:ssm:*:${AWS::AccountId}:/aws/service/global-infrastructure/regions
+            Resource: !Sub arn:aws:ssm:*:${AWS::AccountId}:parameter/aws/service/global-infrastructure/regions
