@@ -1,5 +1,6 @@
 attini/role/mapper/OutputObject.class
 attini/role/mapper/Test1.class
+attini/role/mapper/domain/RoleName.class
 attini/role/mapper/BeanConfig.class
 attini/role/mapper/InputObject.class
 attini/role/mapper/ProcessingService.class

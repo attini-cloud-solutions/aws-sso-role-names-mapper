@@ -31,6 +31,20 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.12.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/ssm -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ssm</artifactId>
+            <version>2.16.79</version>
+        </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -91,6 +105,7 @@
             </activation>
             <properties>
                 <quarkus.package.type>native</quarkus.package.type>
+                <quarkus.native.additional-build-args>-XX:MaxMetaspaceSize=3200m</quarkus.native.additional-build-args>
             </properties>
         </profile>
     </profiles>

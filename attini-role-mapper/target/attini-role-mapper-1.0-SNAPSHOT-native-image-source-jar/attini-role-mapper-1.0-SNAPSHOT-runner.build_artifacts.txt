@@ -1,3 +1,0 @@
-[EXECUTABLE]
-attini-role-mapper-1.0-SNAPSHOT-runner
-

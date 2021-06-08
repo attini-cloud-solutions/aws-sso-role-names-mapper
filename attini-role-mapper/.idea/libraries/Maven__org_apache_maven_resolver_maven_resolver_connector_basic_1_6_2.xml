@@ -1,13 +1,13 @@
 <component name="libraryTable">
   <library name="Maven: org.apache.maven.resolver:maven-resolver-connector-basic:1.6.2">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/apache/maven/resolver/maven-resolver-connector-basic/1.6.2/maven-resolver-connector-basic-1.6.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../.m2/repository/org/apache/maven/resolver/maven-resolver-connector-basic/1.6.2/maven-resolver-connector-basic-1.6.2.jar!/" />
     </CLASSES>
     <JAVADOC>
-      <root url="jar://$MAVEN_REPOSITORY$/org/apache/maven/resolver/maven-resolver-connector-basic/1.6.2/maven-resolver-connector-basic-1.6.2-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../.m2/repository/org/apache/maven/resolver/maven-resolver-connector-basic/1.6.2/maven-resolver-connector-basic-1.6.2-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/apache/maven/resolver/maven-resolver-connector-basic/1.6.2/maven-resolver-connector-basic-1.6.2-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../.m2/repository/org/apache/maven/resolver/maven-resolver-connector-basic/1.6.2/maven-resolver-connector-basic-1.6.2-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
