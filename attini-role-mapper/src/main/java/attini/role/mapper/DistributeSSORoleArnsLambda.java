@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.ssm.model.DeleteParameterRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.PutParameterRequest;
+import software.amazon.awssdk.http.SdkHttpClient;
 
 import javax.inject.Named;
 import java.util.Objects;
@@ -84,7 +85,7 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
         // aws s3 cp target/function.zip s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
         // aws cloudformation delete-stack --stack-name joel-test
-        // aws cloudformation deploy --template cf-template.yaml --stack-name joel-test
+        // aws cloudformation deploy --template cf-template.yaml --stack-name joel-test --capabilites CAPABILITY_IAM
 
 
 
@@ -115,7 +116,8 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
 
     public String getRegions() {
-        SsmClient ssmClient = SsmClient.create();
+        SdkHttpClient client = SdkHttpClient.newHttpClient();
+        SsmClient ssmClient = SsmClient.builder().httpClient(client).build();
 
         // GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions/");
         // Dör alltid på denna rad, krashar för out of memory på jvm och kompilerar ej till native.

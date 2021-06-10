@@ -38,12 +38,21 @@
             <version>1.12.1</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/core -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>core</artifactId>
+            <version>2.16.80</version>
+            <type>pom</type>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/ssm -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>ssm</artifactId>
-            <version>2.16.79</version>
+            <version>2.16.80</version>
         </dependency>
+
 
         <dependency>
             <groupId>org.mockito</groupId>

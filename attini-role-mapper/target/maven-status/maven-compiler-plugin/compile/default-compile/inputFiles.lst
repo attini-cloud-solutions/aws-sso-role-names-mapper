@@ -1,9 +1,0 @@
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/Test1.java
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/StreamLambda.java
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/ProcessingService.java
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/UnusedLambda.java
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/OutputObject.java
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/InputObject.java
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/domain/RoleName.java
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/DistributeSSORoleArnsLambda.java
-/home/backstromjoel/git_repos/aws-sso-role-names-mapper/attini-role-mapper/src/main/java/attini/role/mapper/BeanConfig.java
