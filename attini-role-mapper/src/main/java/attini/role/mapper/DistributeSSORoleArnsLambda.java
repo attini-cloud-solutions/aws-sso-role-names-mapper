@@ -1,6 +1,7 @@
 package attini.role.mapper;
 
 import attini.role.mapper.domain.RoleName;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
@@ -10,13 +11,14 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.model.DeleteParameterRequest;
-import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
-import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
-import software.amazon.awssdk.services.ssm.model.PutParameterRequest;
+import software.amazon.awssdk.services.ssm.model.*;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
 
 import javax.inject.Named;
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
@@ -25,10 +27,7 @@ import java.util.Objects;
 public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEvent, String> {
     @Override
     public String handleRequest(ScheduledEvent event, Context context) {
-
-
-
-        // System.out.println("Got event " + event);
+        System.out.println("Got event " + event);
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode details = objectMapper.valueToTree(event.getDetail());
@@ -42,84 +41,91 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
         String eventName = details.get("eventName").asText();
 
-        // Get regions
-
-
         String permissionSetName = getPermissionSetName(details);
         String parameterName = getParameterName(details);
 
+        List<Region> regions = getRegions();
 
-        String regions = getRegions();
-        System.out.println(regions);
-
-        String PLACEHOLDER = "eu-west-1";
-
-        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(Region.EU_WEST_1).build();
-
-
-        try {
-            if (eventName == "CreateRole") {
-                String RoleArn = details.get("responseElements").get("role").get("arn").asText();
-                PutParameterRequest parameterRequest = PutParameterRequest.builder()
-                        .dataType("String")
-                        .name(parameterName)
-                        .description("Role arn for AWS SSO PermissionSet " + permissionSetName)
-                        .value("CreateRole")
-                        .overwrite(true)
-                        .tier("Standard")
-                        .build();
-                client.putParameter(parameterRequest);
-                System.out.println("Saved: " + parameterName + " in region: " + PLACEHOLDER);
-            } else if (eventName == "DeleteRole") {
-                DeleteParameterRequest deleteParameterRequest = DeleteParameterRequest.builder().name(parameterName).build();
-                client.deleteParameter(deleteParameterRequest);
-                System.out.println("Deleted: " + parameterName + " in region: " + PLACEHOLDER);
+        if (eventName == "CreateRole") {
+            for(Region region : regions) {
+                try {
+                    SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
+                    PutParameterRequest parameterRequest = PutParameterRequest.builder()
+                            .dataType("String")
+                            .name(parameterName)
+                            .description("Role arn for AWS SSO PermissionSet " + permissionSetName)
+                            .value("CreateRole")
+                            .overwrite(true)
+                            .tier("Standard")
+                            .build();
+                    client.putParameter(parameterRequest);
+                    System.out.println("Saved: " + parameterName + " in region: " + region);
+                }
+                catch (Exception e) {
+                    System.err.println("Could not create the parameter in " + region);
+                }
             }
         }
-        catch(Exception e) {
-            if(eventName == "CreateRole") {
-                System.out.println("Could not create the parameter in " + PLACEHOLDER);
-            }
-            else if (eventName == "DeleteRole") {
-                System.out.println("Could not delete the parameter in " + PLACEHOLDER);
+        else if (eventName == "DeleteRole") {
+            for(Region region : regions) {
+                try {
+                    SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
+                    DeleteParameterRequest deleteParameterRequest = DeleteParameterRequest.builder().name(parameterName).build();
+                    client.deleteParameter(deleteParameterRequest);
+                    System.out.println("Deleted: " + parameterName + " in region: " + region);
+                }
+                catch (Exception e) {
+                    System.err.println("Could not delete the parameter in " + region);
+                }
             }
         }
 
         // aws s3 cp target/function.zip s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
         // aws cloudformation delete-stack --stack-name joel-test
         // aws cloudformation deploy --template cf-template.yaml --stack-name joel-test --capabilites CAPABILITY_IAM
-        
-
-        // System.out.println(details.get("requestParameters").get("roleName").asText());
-
-        // System.out.println("Got event details " + event);
-
-
-        // Kom ihåg: Hämta regioner från parameter store ist för ec2
 
         return new String("Success");
     }
 
     private String getPermissionSetName(JsonNode details) {
         String result = details.get("requestParameters").get("roleName").asText().trim().split("_")[0];
-        System.out.println("PERMISSION SET NAME: " + result);
         return result;
     }
 
     private String getParameterName(JsonNode details) {
         String permissionSetName = getPermissionSetName(details);
         String result = "/SSORoleArns/" + permissionSetName;
-        System.out.println("PARAMETER NAME: " + result);
         return result;
     }
 
-    public String getRegions() {
+    /**
+     * Get all regions from /aws/service/global-infrastructure/regions
+     * Ignores CN/gov regions.
+     * Currently requires region to exist in both Region.regions and in /aws/service/global-infrastructure/regions.
+     */
+    public List<Region> getRegions() {
         SsmClient ssmClient = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
 
-        // GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions/");
-        // Dör alltid på denna rad, kraschar för out of memory på jvm och kompilerar ej till native.
-        // GetParametersByPathResponse response = ssmClient.getParametersByPath(requestBuilder.build());
-        // return response.toString();
-        return "sample-region";
+        GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions"); // /aws/service/global-infrastructure/services/ssm/regions
+        GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
+
+        ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+
+        for(GetParametersByPathResponse response : iterable) {
+            parameters.addAll(response.parameters());
+        }
+
+        ArrayList<Region> regions = new ArrayList<Region>();
+
+        for(Parameter region1 : parameters) {
+            String region = region1.value();
+            for(Region region2 : Region.regions()) {
+                if(region.equals(region2.toString()) && !region.contains("-gov-") && !region.contains("cn-")) {
+                    regions.add(region2);
+                    break;
+                }
+            }
+        }
+        return regions;
     }
 }
