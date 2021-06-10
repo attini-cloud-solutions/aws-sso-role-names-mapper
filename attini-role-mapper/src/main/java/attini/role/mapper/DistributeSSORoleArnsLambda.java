@@ -52,6 +52,8 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
                 }
                 catch (SsmException e) {
                     //TODO clean up ssmexception message.
+                    //TODO switch to logger jboss
+                    //SsmException is internal to SsmService, should be in SsmService.
                     System.err.println("Could not create the parameter in " + region);
                     System.err.println("AWS error details: " + e.awsErrorDetails());
                 }

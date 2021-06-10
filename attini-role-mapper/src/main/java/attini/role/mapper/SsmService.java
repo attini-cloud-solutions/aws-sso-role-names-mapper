@@ -17,19 +17,25 @@ public class SsmService {
      * Ignores CN/gov regions.
      * Currently requires region to exist in both Region.regions and in /aws/service/global-infrastructure/regions.
      */
-    public List<Region> getAllRegions() {
-        SsmClient ssmClient = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
+    private final SsmClient ssmClient;
 
+    public SsmService(SsmClient ssmClient) {
+        this.ssmClient = ssmClient;
+    }
+
+    public List<Region> getAllRegions() {
         GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions"); // /aws/service/global-infrastructure/services/ssm/regions
         GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
 
         ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-
+        //TODO Convert to stream
         for(GetParametersByPathResponse response : iterable) {
             parameters.addAll(response.parameters());
         }
 
         ArrayList<Region> regions = new ArrayList<Region>();
+
+        //regions.add(Region.of(parameters.get(0).value()));
 
         for(Parameter region1 : parameters) {
             String region = region1.value();
@@ -40,7 +46,7 @@ public class SsmService {
                 }
             }
         }
-        
+
         return regions;
     }
 
@@ -60,22 +66,12 @@ public class SsmService {
     }
     
     public DeleteParameterResponse deleteParameter(Region region, DeleteParameterRequest deleteParameterRequest) {
-        try {
-            SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
-            return client.deleteParameter(deleteParameterRequest);
-        } 
-        catch (SsmException e) {
-            throw e;
-        }
+        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
+        return client.deleteParameter(deleteParameterRequest);
     }
 
     public PutParameterResponse putParameter(Region region, PutParameterRequest parameterRequest) {
-        try {
-            SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
-            return client.putParameter(parameterRequest);            
-        }
-        catch (SsmException e) {
-            throw e;
-        }
+        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
+        return client.putParameter(parameterRequest);  
     }
 }
