@@ -23,3 +23,8 @@
 hs_err_pid*
 
 attini-role-mapper/target/
+
+.gradle
+.project
+.settings
+.classpath
