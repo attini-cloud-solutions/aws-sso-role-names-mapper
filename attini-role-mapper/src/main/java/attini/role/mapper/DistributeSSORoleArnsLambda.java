@@ -1,14 +1,14 @@
 package attini.role.mapper;
 
+import attini.role.mapper.domain.ParameterName;
+import attini.role.mapper.domain.PermissionSetName;
 import attini.role.mapper.domain.RoleName;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.*;
 
 import javax.inject.Inject;
@@ -30,8 +30,6 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode details = objectMapper.valueToTree(event.getDetail());
 
-
-
         RoleName roleName = RoleName.create(details.get("requestParameters").get("roleName").asText());
 
         if(!roleName.getName().startsWith("AWSReservedSSO")) {
@@ -41,41 +39,35 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
         String eventName = details.get("eventName").asText();
 
-        String permissionSetName = getPermissionSetName(details);
-        String parameterName = getParameterName(details);
-
+        PermissionSetName permissionSetName = PermissionSetName.create(details.get("requestParameters").get("roleName").asText().trim().split("_")[0]);
+        ParameterName parameterName = ParameterName.create(permissionSetName);
         List<Region> regions = ssmService.getAllRegions();
 
         if (eventName == "CreateRole") {
             for(Region region : regions) {
                 try {
-                    SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
-                    PutParameterRequest parameterRequest = PutParameterRequest.builder()
-                            .dataType("String")
-                            .name(parameterName)
-                            .description("Role arn for AWS SSO PermissionSet " + permissionSetName)
-                            .value("CreateRole")
-                            .overwrite(true)
-                            .tier("Standard")
-                            .build();
-                    client.putParameter(parameterRequest);
+                    PutParameterRequest putParameterRequest = ssmService.getCreateParameterRequest(region, parameterName, permissionSetName);
+                    PutParameterResponse putParameterResponse = ssmService.putParameter(region, putParameterRequest);
                     System.out.println("Saved: " + parameterName + " in region: " + region);
                 }
-                catch (Exception e) {
+                catch (SsmException e) {
+                    //TODO clean up ssmexception message.
                     System.err.println("Could not create the parameter in " + region);
+                    System.err.println("AWS error details: " + e.awsErrorDetails());
                 }
             }
         }
         else if (eventName == "DeleteRole") {
             for(Region region : regions) {
                 try {
-                    SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
-                    DeleteParameterRequest deleteParameterRequest = DeleteParameterRequest.builder().name(parameterName).build();
-                    client.deleteParameter(deleteParameterRequest);
+                    DeleteParameterRequest deleteParameterRequest = ssmService.getDeleteParameterRequest(parameterName);
+                    DeleteParameterResponse deleteParameterResponse = ssmService.deleteParameter(region, deleteParameterRequest);
                     System.out.println("Deleted: " + parameterName + " in region: " + region);
                 }
-                catch (Exception e) {
+                catch (SsmException e) {
+                    //TODO clean up ssmexception message.
                     System.err.println("Could not delete the parameter in " + region);
+                    System.err.println("AWS error details: " + e.awsErrorDetails());
                 }
             }
         }
@@ -85,16 +77,5 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
         // aws cloudformation deploy --template cf-template.yaml --stack-name joel-test --capabilites CAPABILITY_IAM
 
         return new String("Success");
-    }
-
-    private String getPermissionSetName(JsonNode details) {
-        String result = details.get("requestParameters").get("roleName").asText().trim().split("_")[0];
-        return result;
-    }
-
-    private String getParameterName(JsonNode details) {
-        String permissionSetName = getPermissionSetName(details);
-        String result = "/SSORoleArns/" + permissionSetName;
-        return result;
     }
 }
