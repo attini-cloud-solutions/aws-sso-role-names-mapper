@@ -8,8 +8,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.model.DeleteParameterRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
+import software.amazon.awssdk.services.ssm.model.PutParameterRequest;
 
 import javax.inject.Named;
 import java.util.Objects;
@@ -37,16 +39,52 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
         // Get regions
 
+
+        String permissionSetName = getPermissionSetName(details);
+        String parameterName = getParameterName(details);
+
+
         String regions = getRegions();
         System.out.println(regions);
 
+        String PLACEHOLDER = "eu-west-1";
 
-        if(eventName == "CreateRole") {
-            String RoleArn = details.get("responseElements").get("role").get("arn").asText();
+        SsmClient client = SsmClient.builder().region(Region.EU_WEST_1).build();
 
 
+        try {
+            if (eventName == "CreateRole") {
+                String RoleArn = details.get("responseElements").get("role").get("arn").asText();
+                PutParameterRequest parameterRequest = PutParameterRequest.builder()
+                        .dataType("String")
+                        .name(parameterName)
+                        .description("Role arn for AWS SSO PermissionSet " + permissionSetName)
+                        .value("CreateRole")
+                        .overwrite(true)
+                        .tier("Standard")
+                        .build();
+                client.putParameter(parameterRequest);
+                System.out.println("Saved: " + parameterName + " in region: " + PLACEHOLDER);
+            } else if (eventName == "DeleteRole") {
+                DeleteParameterRequest deleteParameterRequest = DeleteParameterRequest.builder().name(parameterName).build();
+                client.deleteParameter(deleteParameterRequest);
+                System.out.println("Deleted: " + parameterName + " in region: " + PLACEHOLDER);
+            }
+        }
+        catch(Exception e) {
+            if(eventName == "CreateRole") {
+                System.out.println("Could not create the parameter in " + PLACEHOLDER);
+            }
+            else if (eventName == "DeleteRole") {
+                System.out.println("Could not delete the parameter in " + PLACEHOLDER);
+            }
         }
 
+
+
+        // aws s3 cp target/function.zip s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
+        // aws cloudformation delete-stack --stack-name joel-test
+        // aws cloudformation deploy --template cf-template.yaml --stack-name joel-test
 
 
 
@@ -58,16 +96,31 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
         // Kom ihåg: Hämta regioner från parameter store ist för ec2
 
-        return "hej\n";
+        return new String("Success");
+    }
+
+    public String getPermissionSetName(JsonNode details) {
+        String result = details.get("requestParameters").get("roleName").asText().trim().split("_")[0];
+        System.out.println("PERMISSION SET NAME: " + result);
+        return result;
+    }
+
+    public String getParameterName(JsonNode details) {
+        String permissionSetName = getPermissionSetName(details);
+        String result = "/SSORoleArns/" + permissionSetName;
+        System.out.println("PARAMETER NAME: " + result);
+        return result;
     }
 
 
-    public String getRegions() {
-        SsmClient ssmClient = SsmClient.builder().region(Region.EU_WEST_1).build();
-        GetParametersByPathRequest path = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/services/athena/regions").build();
 
-        GetParametersByPathResponse response = ssmClient.getParametersByPath(path);
+    public String getRegions() {
+        SsmClient ssmClient = SsmClient.create();
+
+        // GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions/");
+        // Dör alltid på denna rad, krashar för out of memory på jvm och kompilerar ej till native.
+        // GetParametersByPathResponse response = ssmClient.getParametersByPath(requestBuilder.build());
         // return response.toString();
-        return "tjohej";
+        return "sample-region";
     }
 }

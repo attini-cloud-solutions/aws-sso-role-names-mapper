@@ -105,7 +105,6 @@
             </activation>
             <properties>
                 <quarkus.package.type>native</quarkus.package.type>
-                <quarkus.native.additional-build-args>-XX:MaxMetaspaceSize=3200m</quarkus.native.additional-build-args>
             </properties>
         </profile>
     </profiles>
