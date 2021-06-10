@@ -6,6 +6,8 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.DeleteParameterRequest;
@@ -16,6 +18,8 @@ import software.amazon.awssdk.http.SdkHttpClient;
 
 import javax.inject.Named;
 import java.util.Objects;
+
+// Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
 
 @Named("DistributeSSORoleArnsLambda")
 public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEvent, String> {
@@ -50,7 +54,7 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
         String PLACEHOLDER = "eu-west-1";
 
-        SsmClient client = SsmClient.builder().region(Region.EU_WEST_1).build();
+        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(Region.EU_WEST_1).build();
 
 
         try {
@@ -81,14 +85,10 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
             }
         }
 
-
-
         // aws s3 cp target/function.zip s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
         // aws cloudformation delete-stack --stack-name joel-test
         // aws cloudformation deploy --template cf-template.yaml --stack-name joel-test --capabilites CAPABILITY_IAM
-
-
-
+        
 
         // System.out.println(details.get("requestParameters").get("roleName").asText());
 
@@ -100,27 +100,24 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
         return new String("Success");
     }
 
-    public String getPermissionSetName(JsonNode details) {
+    private String getPermissionSetName(JsonNode details) {
         String result = details.get("requestParameters").get("roleName").asText().trim().split("_")[0];
         System.out.println("PERMISSION SET NAME: " + result);
         return result;
     }
 
-    public String getParameterName(JsonNode details) {
+    private String getParameterName(JsonNode details) {
         String permissionSetName = getPermissionSetName(details);
         String result = "/SSORoleArns/" + permissionSetName;
         System.out.println("PARAMETER NAME: " + result);
         return result;
     }
 
-
-
     public String getRegions() {
-        SdkHttpClient client = SdkHttpClient.newHttpClient();
-        SsmClient ssmClient = SsmClient.builder().httpClient(client).build();
+        SsmClient ssmClient = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
 
         // GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions/");
-        // Dör alltid på denna rad, krashar för out of memory på jvm och kompilerar ej till native.
+        // Dör alltid på denna rad, kraschar för out of memory på jvm och kompilerar ej till native.
         // GetParametersByPathResponse response = ssmClient.getParametersByPath(requestBuilder.build());
         // return response.toString();
         return "sample-region";

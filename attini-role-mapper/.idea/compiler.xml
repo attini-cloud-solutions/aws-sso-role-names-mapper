@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="attini-role-mapper" target="1.8" />
+      <module name="attini-role-mapper" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

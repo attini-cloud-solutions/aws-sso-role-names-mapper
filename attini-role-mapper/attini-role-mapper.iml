@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -288,7 +288,7 @@
     <orderEntry type="library" name="Maven: joda-time:joda-time:2.8.1" level="project" />
     <orderEntry type="library" name="Maven: com.amazonaws:aws-java-sdk-models:1.12.1" level="project" />
     <orderEntry type="library" name="Maven: com.amazonaws:aws-java-sdk-swf-libraries:1.11.22" level="project" />
-    <orderEntry type="library" name="Maven: software.amazon.awssdk:ssm:2.16.79" level="project" />
+    <orderEntry type="library" name="Maven: software.amazon.awssdk:ssm:2.16.80" level="project" />
     <orderEntry type="library" name="Maven: software.amazon.awssdk:aws-json-protocol:2.16.36" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.12.3" level="project" />
     <orderEntry type="library" name="Maven: software.amazon.awssdk:protocol-core:2.16.36" level="project" />
@@ -317,6 +317,7 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: io.netty:netty-transport-native-unix-common:4.1.49.Final" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.typesafe.netty:netty-reactive-streams-http:2.0.4" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.typesafe.netty:netty-reactive-streams:2.0.4" level="project" />
+    <orderEntry type="library" name="Maven: software.amazon.awssdk:url-connection-client:2.16.36" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-junit-jupiter:3.8.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-core:3.8.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy:1.10.20" level="project" />
