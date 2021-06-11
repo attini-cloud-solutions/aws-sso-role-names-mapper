@@ -40,9 +40,8 @@ public class SsmServiceTest {
     }
 
     /**
-     * Not very useful...
+     *
      */
-    /*
     @Test
     public void getAllRegionsTest() {
         Mockito.when(ssmClient.getParametersByPathPaginator(Mockito.any(GetParametersByPathRequest.class)))
@@ -51,15 +50,19 @@ public class SsmServiceTest {
         //responseBuilder.....
         //responseBuilder.parameters();
 
-        Stream<GetParametersByPathResponse> s = Stream.of(responseBuilder.build(), responseBuilder.build());
-        
-       
+        Parameter.Builder paramBuilder = Parameter.builder();
+
+        Stream<GetParametersByPathResponse> s = Stream.of(
+                (responseBuilder.parameters(paramBuilder.value("eu-west-1").build()).build()),
+                (responseBuilder.parameters(paramBuilder.value("us-east-1").build()).build()));
+
         Mockito.when(getParametersByPathIterable.stream()).thenReturn(s);
 
 
         List<Region> regions = ssmService.getAllRegions();
         assertNotEquals(new ArrayList<Region>(), regions);
-        assertTrue(regions.contains(Region.US_EAST_1));
+        assertTrue(regions.contains(Region.EU_WEST_1) && regions.contains(Region.US_EAST_1));
+        assertFalse(regions.contains(Region.EU_WEST_2));
+
     }
-     */
 }
