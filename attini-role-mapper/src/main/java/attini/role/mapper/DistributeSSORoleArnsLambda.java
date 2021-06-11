@@ -8,6 +8,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jboss.logging.Logger;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.model.*;
 
@@ -20,12 +21,14 @@ import java.util.List;
 @Named("DistributeSSORoleArnsLambda")
 public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEvent, String> {
 
+    private final static Logger LOGGER = Logger.getLogger(DistributeSSORoleArnsLambda.class);
+
     @Inject
     SsmService ssmService;
 
     @Override
     public String handleRequest(ScheduledEvent event, Context context) {
-        System.out.println("Got event " + event);
+        LOGGER.log(Logger.Level.INFO, "Got event " + event);
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode details = objectMapper.valueToTree(event.getDetail());
@@ -33,7 +36,7 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
         RoleName roleName = RoleName.create(details.get("requestParameters").get("roleName").asText());
 
         if(!roleName.getName().startsWith("AWSReservedSSO")) {
-            System.err.println("Invalid event, please verify the cloudtrail filter");
+            LOGGER.log(Logger.Level.ERROR,"Invalid event, please verify the cloudtrail filter");
             return "Failed";
         }
 
@@ -48,14 +51,14 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
                 try {
                     PutParameterRequest putParameterRequest = ssmService.getCreateParameterRequest(region, parameterName, permissionSetName);
                     PutParameterResponse putParameterResponse = ssmService.putParameter(region, putParameterRequest);
-                    System.out.println("Saved: " + parameterName + " in region: " + region);
+                    LOGGER.log(Logger.Level.INFO, "Saved: " + parameterName + " in region: " + region);
                 }
                 catch (SsmException e) {
                     //TODO clean up ssmexception message.
                     //TODO switch to logger jboss
                     //SsmException is internal to SsmService, should be in SsmService.
-                    System.err.println("Could not create the parameter in " + region);
-                    System.err.println("AWS error details: " + e.awsErrorDetails());
+                    LOGGER.log(Logger.Level.ERROR, "Could not create the parameter in " + region);
+                    LOGGER.log(Logger.Level.INFO, "AWS error details: " + e.awsErrorDetails());
                 }
             }
         }
@@ -64,12 +67,12 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
                 try {
                     DeleteParameterRequest deleteParameterRequest = ssmService.getDeleteParameterRequest(parameterName);
                     DeleteParameterResponse deleteParameterResponse = ssmService.deleteParameter(region, deleteParameterRequest);
-                    System.out.println("Deleted: " + parameterName + " in region: " + region);
+                    LOGGER.log(Logger.Level.INFO,"Deleted: " + parameterName + " in region: " + region);
                 }
                 catch (SsmException e) {
                     //TODO clean up ssmexception message.
-                    System.err.println("Could not delete the parameter in " + region);
-                    System.err.println("AWS error details: " + e.awsErrorDetails());
+                    LOGGER.log(Logger.Level.ERROR, "Could not delete the parameter in " + region);
+                    LOGGER.log(Logger.Level.INFO, "AWS error details: " + e.awsErrorDetails());
                 }
             }
         }

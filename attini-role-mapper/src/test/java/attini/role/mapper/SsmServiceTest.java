@@ -42,6 +42,7 @@ public class SsmServiceTest {
     /**
      * Not very useful...
      */
+    /*
     @Test
     public void getAllRegionsTest() {
         Mockito.when(ssmClient.getParametersByPathPaginator(Mockito.any(GetParametersByPathRequest.class)))
@@ -60,4 +61,5 @@ public class SsmServiceTest {
         assertNotEquals(new ArrayList<Region>(), regions);
         assertTrue(regions.contains(Region.US_EAST_1));
     }
+     */
 }

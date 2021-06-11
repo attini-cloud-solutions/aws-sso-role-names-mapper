@@ -5,6 +5,7 @@ import java.util.List;
 
 import attini.role.mapper.domain.ParameterName;
 import attini.role.mapper.domain.PermissionSetName;
+import com.amazonaws.services.kinesis.model.Consumer;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -28,15 +29,27 @@ public class SsmService {
         GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
 
         ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-        //TODO Convert to stream
+
+        /*
+        //TODO Convert to stream DONE
         for(GetParametersByPathResponse response : iterable) {
             parameters.addAll(response.parameters());
         }
+        */
+
+        iterable.stream().forEach(page -> {
+            parameters.addAll(page.parameters());
+        });
 
         ArrayList<Region> regions = new ArrayList<Region>();
 
-        //regions.add(Region.of(parameters.get(0).value()));
+        parameters.stream().filter(parameter -> !parameter.value().contains("-gov-") && !parameter.value().contains("cn-")).forEach(param -> {
+            regions.add(Region.of(param.value()));
+        });
 
+        //TODO Dont use static variable regions DONE
+        //regions.add(Region.of(parameters.get(0).value()));
+        /*
         for(Parameter region1 : parameters) {
             String region = region1.value();
             for(Region region2 : Region.regions()) {
@@ -46,6 +59,7 @@ public class SsmService {
                 }
             }
         }
+        */
 
         return regions;
     }
