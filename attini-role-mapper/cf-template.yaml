@@ -10,7 +10,15 @@ Parameters:
     Default: /attini/aws-sso-role-names-mapper/
 
 Resources:
-  Trigger:
+  TriggerMonthly:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Triggers on the creation of an SSO PermissionSet role
+      ScheduleExpression: cron(0 0 1 * ? *)
+      Targets:
+        - Arn: !GetAtt DistributeSSORoleArns.Arn
+          Id: DistributeSSORoleArns
+  TriggerOnEvent:
     Type: AWS::Events::Rule
     Properties:
       Description: Triggers on the creation of an SSO PermissionSet role

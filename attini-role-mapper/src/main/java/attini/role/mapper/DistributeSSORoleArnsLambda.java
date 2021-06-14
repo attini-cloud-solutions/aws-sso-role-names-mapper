@@ -18,6 +18,11 @@ import java.util.List;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
 
+// aws s3 cp target/function.zip s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
+// aws cloudformation delete-stack --stack-name joel-test
+// aws cloudformation deploy --template cf-template.yaml --stack-name joel-test --capabilites CAPABILITY_IAM
+
+
 @Named("DistributeSSORoleArnsLambda")
 public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEvent, String> {
 
@@ -26,6 +31,8 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
     @Inject
     SsmService ssmService;
 
+    // TODO: Skriv logik för TriggerMonthly (ny lambda?).
+    // TODO: Skapa ett objekt vi kan returnera.
     @Override
     public String handleRequest(ScheduledEvent event, Context context) {
         LOGGER.log(Logger.Level.INFO, "Got event " + event);
@@ -54,11 +61,10 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
                     LOGGER.log(Logger.Level.INFO, "Saved: " + parameterName + " in region: " + region);
                 }
                 catch (SsmException e) {
-                    //TODO clean up ssmexception message.
-                    //TODO switch to logger jboss
-                    //SsmException is internal to SsmService, should be in SsmService.
+                    // TODO: Move Try/Catch logic to service class.
+                    // SsmException is internal to SsmService, should be in SsmService.
                     LOGGER.log(Logger.Level.ERROR, "Could not create the parameter in " + region);
-                    LOGGER.log(Logger.Level.INFO, "AWS error details: " + e.awsErrorDetails());
+                    LOGGER.log(Logger.Level.ERROR, "AWS error details: " + e.awsErrorDetails());
                 }
             }
         }
@@ -70,17 +76,11 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
                     LOGGER.log(Logger.Level.INFO,"Deleted: " + parameterName + " in region: " + region);
                 }
                 catch (SsmException e) {
-                    //TODO clean up ssmexception message.
                     LOGGER.log(Logger.Level.ERROR, "Could not delete the parameter in " + region);
-                    LOGGER.log(Logger.Level.INFO, "AWS error details: " + e.awsErrorDetails());
+                    LOGGER.log(Logger.Level.ERROR, "AWS error details: " + e.awsErrorDetails());
                 }
             }
         }
-
-        // aws s3 cp target/function.zip s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
-        // aws cloudformation delete-stack --stack-name joel-test
-        // aws cloudformation deploy --template cf-template.yaml --stack-name joel-test --capabilites CAPABILITY_IAM
-
         return new String("Success");
     }
 }

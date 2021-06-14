@@ -47,6 +47,7 @@ public class SsmServiceTest {
         ssmService = new SsmService(ssmClient);
     }
 
+    // TODO: Lägg till fler test med felhantering
     @Test
     public void getAllRegionsTest() {
         when(ssmClient.getParametersByPathPaginator(any(GetParametersByPathRequest.class)))
@@ -56,21 +57,19 @@ public class SsmServiceTest {
 
         Stream<GetParametersByPathResponse> responseStream = Stream.of(
                 responseBuilder.parameters(toParam("eu-west-1"),
-                                           toParam("eu-north-1")).build(), //då det kan komma olika många regioner i varje paginering är det värt att ha med det i sitt test
+                                           toParam("eu-north-1")).build(),
                 responseBuilder.parameters(toParam("us-east-1")).build());
 
         when(getParametersByPathIterable.stream()).thenReturn(responseStream);
 
         List<Region> regions = ssmService.getAllRegions();
 
-        assertNotEquals(new ArrayList<Region>(), regions); // onödigt, behöver inte gämföra med en tom lista, om man vill kan man kolla att listan inte är tom men bättre att kolla att den har rätt size, se nedan
         assertEquals(3,regions.size());
         assertTrue(regions.containsAll(List.of(EU_WEST_1, US_EAST_1, EU_NORTH_1)));
         assertFalse(regions.contains(EU_WEST_2));
 
     }
 
-    //Lägg till fler test med felhantering
 
     private static Parameter toParam(String value) {
         return Parameter.builder().value(value).build();

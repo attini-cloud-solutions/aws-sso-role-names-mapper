@@ -14,9 +14,8 @@ import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterabl
 
 public class SsmService {
     /**
-     * Get all regions from /aws/service/global-infrastructure/regions
+     * Get all regions from /aws/service/global-infrastructure/regions.
      * Ignores CN/gov regions.
-     * Currently requires region to exist in both Region.regions and in /aws/service/global-infrastructure/regions.
      */
     private final SsmClient ssmClient;
 
@@ -30,13 +29,6 @@ public class SsmService {
 
         ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 
-        /*
-        //TODO Convert to stream DONE
-        for(GetParametersByPathResponse response : iterable) {
-            parameters.addAll(response.parameters());
-        }
-        */
-
         iterable.stream().forEach(page -> {
             parameters.addAll(page.parameters());
         });
@@ -46,20 +38,6 @@ public class SsmService {
         parameters.stream().filter(parameter -> !parameter.value().contains("-gov-") && !parameter.value().contains("cn-")).forEach(param -> {
             regions.add(Region.of(param.value()));
         });
-
-        //TODO Dont use static variable regions DONE
-        //regions.add(Region.of(parameters.get(0).value()));
-        /*
-        for(Parameter region1 : parameters) {
-            String region = region1.value();
-            for(Region region2 : Region.regions()) {
-                if(region.equals(region2.toString()) && !region.contains("-gov-") && !region.contains("cn-")) {
-                    regions.add(region2);
-                    break;
-                }
-            }
-        }
-        */
 
         return regions;
     }
