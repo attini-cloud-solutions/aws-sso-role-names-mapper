@@ -1,6 +1,7 @@
 package attini.role.mapper;
 
 import attini.role.mapper.domain.*;
+import com.amazonaws.services.acmpca.model.InvalidArgsException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.ssm.model.*;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
@@ -22,7 +24,7 @@ import java.util.List;
 
 
 @Named("DistributeSSORoleArnsLambda")
-public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEvent, String> {
+public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEvent, DistributeSSORoleArnsLambdaResponse> {
 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORoleArnsLambda.class);
 
@@ -32,8 +34,9 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
     // TODO: Skriv logik för TriggerMonthly (ny lambda?).
     // TODO: Skapa ett objekt vi kan returnera.
     @Override
-    public String handleRequest(ScheduledEvent event, Context context) {
-        LOGGER.log(Logger.Level.INFO, "Got event " + event);
+    public DistributeSSORoleArnsLambdaResponse handleRequest(ScheduledEvent event, Context context) {
+        LOGGER.info("Got event " + event);
+        DistributeSSORoleArnsLambdaResponse lambdaResponse = new DistributeSSORoleArnsLambdaResponse();
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode details = objectMapper.valueToTree(event.getDetail());
@@ -41,39 +44,44 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
         RoleName roleName = RoleName.create(details.get("requestParameters").get("roleName").asText());
 
         if(!roleName.getName().startsWith("AWSReservedSSO")) {
-            LOGGER.log(Logger.Level.ERROR,"Invalid event, please verify the cloudtrail filter");
-            return "Failed";
+            throw new InvalidArgsException("Invalid event, please verify the cloudtrail filter");
         }
 
-        String eventName = details.get("eventName").asText();
+        String eventName = details.get("requestParameters").get("eventName").asText();
 
         PermissionSetName permissionSetName = PermissionSetName.create(details.get("requestParameters").get("roleName").asText().trim().split("_")[0]);
         ParameterName parameterName = ParameterName.create(permissionSetName);
         List<Region> regions = ssmService.getAllRegions();
 
+        LinkedHashSet<Region> successfulCreateRegions = new LinkedHashSet<Region>();
+        LinkedHashSet<Region> successfulDeleteRegions = new LinkedHashSet<Region>();
         if (eventName.equals("CreateRole")) {
-            for(Region region : regions) {
+            regions.stream().map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName))
+                    .forEach(request -> {
+                        if (ssmService.putParameter(request)) {
+                            LOGGER.info("Saved: " + parameterName + " in region: " + request.getRegion());
+                            successfulCreateRegions.add(request.getRegion());
+                        } else {
+                            LOGGER.warn("Could not create the parameter in " + request.getRegion());
+                        }
+                    });
+            lambdaResponse.parametersCreated.put(parameterName, successfulCreateRegions);
+        }
 
-                SsmPutParameterRequest ssmPutParameterRequest = SsmPutParameterRequest.create(region, parameterName, permissionSetName);
-                if(ssmService.putParameter(ssmPutParameterRequest)) {
-                    LOGGER.log(Logger.Level.INFO, "Saved: " + parameterName + " in region: " + region);
-                }
-                else {
-                    LOGGER.warn("Could not create the parameter in " + region);
-                }
-            }
-        }
         else if (eventName.equals("DeleteRole")) {
-            for(Region region : regions) {
-                SsmDeleteParameterRequest ssmDeleteParameterRequest = SsmDeleteParameterRequest.create(region, parameterName);
-                if(ssmService.deleteParameter(ssmDeleteParameterRequest)) {
-                    LOGGER.log(Logger.Level.INFO,"Deleted: " + parameterName + " in region: " + region);
-                }
-                else {
-                    LOGGER.warn("Could not delete the parameter in " + region);
-                }
-            }
+            regions.stream().map(region -> SsmDeleteParameterRequest.create(region, parameterName))
+                    .forEach(request -> {
+                        if(ssmService.deleteParameter(request)) {
+                            LOGGER.info("Deleted: " + parameterName + " in region: " + request.getRegion());
+                            successfulDeleteRegions.add(request.getRegion());
+                        }
+                        else {
+                            LOGGER.warn("Could not delete the parameter in " + request.getRegion());
+                        }
+                    });
+            lambdaResponse.parametersDeleted.put(parameterName, successfulDeleteRegions);
         }
-        return "Success";
+
+        return lambdaResponse;
     }
 }
