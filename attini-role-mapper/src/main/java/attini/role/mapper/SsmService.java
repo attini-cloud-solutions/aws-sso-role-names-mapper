@@ -1,6 +1,7 @@
 package attini.role.mapper;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import attini.role.mapper.domain.ParameterName;
@@ -28,23 +29,37 @@ public class SsmService {
      * Ignores CN/gov regions.
      * @return all regions from /aws/service/global-infrastructure/regions.
      */
-    public List<Region> getAllRegions() {
+    public List<Region> getAllRegions() { // TODO should return Set<>
         GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions"); // /aws/service/global-infrastructure/services/ssm/regions
         GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
 
-        ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+        ArrayList<Parameter> parameters = new ArrayList<>();
 
         iterable.stream().forEach(page -> {
             parameters.addAll(page.parameters());
         });
 
-        ArrayList<Region> regions = new ArrayList<Region>();
+        ArrayList<Region> regions = new ArrayList<>();
 
         parameters.stream().filter(parameter -> !parameter.value().contains("-gov-") && !parameter.value().contains("cn-")).forEach(param -> {
             regions.add(Region.of(param.value()));
         });
 
         return regions;
+    }
+
+    /**
+     *
+     * @param region
+     * @return Set of parameters from path /attini/aws-sso-role-names-mapper
+     */
+    public HashSet<Parameter> getParameters(Region region) {
+        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
+        GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/attini/aws-sso-role-names-mapper");
+        GetParametersByPathIterable iterable = client.getParametersByPathPaginator(requestBuilder.build());
+        HashSet<Parameter> parameters = new HashSet<>();
+        iterable.stream().forEach(page -> parameters.addAll(page.parameters()));
+        return parameters;
     }
 
 

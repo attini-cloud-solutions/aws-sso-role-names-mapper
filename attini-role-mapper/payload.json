@@ -7,12 +7,12 @@
   "time": "2015-10-08T16:53:06Z",
   "region": "us-east-1",
   "resources": [
-    "arn:aws:events:us-east-1:123456789012:rule/my-scheduled-rule"
+    "arn:aws:events:us-east-1:123456789012:rule/-TriggerMonthly-"
   ],
   "detail": {
     "eventName": "",
     "requestParameters": {
-      "roleName": "AWSReservedSSO",
+      "roleName": "AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad",
       "eventName": "CreateRole",
       "role": {
         "arn": "??????????"

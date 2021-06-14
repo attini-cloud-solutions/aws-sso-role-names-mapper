@@ -52,6 +52,12 @@
             <artifactId>ssm</artifactId>
             <version>2.16.80</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/iam -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>iam</artifactId>
+            <version>2.16.83</version>
+        </dependency>
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

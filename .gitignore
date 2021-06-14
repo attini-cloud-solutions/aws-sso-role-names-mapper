@@ -29,3 +29,5 @@ attini-role-mapper/target/
 .settings
 .classpath
 .vscode
+.idea
+bin/
