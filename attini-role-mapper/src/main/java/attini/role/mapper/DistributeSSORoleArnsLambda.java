@@ -31,8 +31,7 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
     @Inject
     SsmService ssmService;
 
-    // TODO: Skriv logik för TriggerMonthly (ny lambda?).
-    // TODO: Skapa ett objekt vi kan returnera.
+    // TODO: Skriv logik för TriggerMonthly.
     @Override
     public DistributeSSORoleArnsLambdaResponse handleRequest(ScheduledEvent event, Context context) {
         LOGGER.info("Got event " + event);
