@@ -7,6 +7,7 @@ import attini.role.mapper.domain.ParameterName;
 import attini.role.mapper.domain.PermissionSetName;
 import attini.role.mapper.domain.SsmDeleteParameterRequest;
 import attini.role.mapper.domain.SsmPutParameterRequest;
+import com.amazonaws.services.dynamodbv2.xspec.B;
 import com.amazonaws.services.kinesis.model.Consumer;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -15,16 +16,18 @@ import software.amazon.awssdk.services.ssm.model.*;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
 
 public class SsmService {
-    /**
-     * Get all regions from /aws/service/global-infrastructure/regions.
-     * Ignores CN/gov regions.
-     */
+
     private final SsmClient ssmClient;
 
     public SsmService(SsmClient ssmClient) {
         this.ssmClient = ssmClient;
     }
 
+
+    /**
+     * Ignores CN/gov regions.
+     * @return all regions from /aws/service/global-infrastructure/regions.
+     */
     public List<Region> getAllRegions() {
         GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions"); // /aws/service/global-infrastructure/services/ssm/regions
         GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
@@ -45,21 +48,41 @@ public class SsmService {
     }
 
 
+    /**
+     *
+     * @param ssmDeleteParameterRequest
+     * @return true if success, false otherwise.
+     */
+    public boolean deleteParameter(SsmDeleteParameterRequest ssmDeleteParameterRequest) {
+        try {
+            SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmDeleteParameterRequest.getRegion()).build();
+            client.deleteParameter(getDeleteParameterRequest(ssmDeleteParameterRequest.getParameterName()));
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
 
-    public DeleteParameterResponse deleteParameter(SsmDeleteParameterRequest ssmDeleteParameterRequest) {
-        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmDeleteParameterRequest.getRegion()).build();
-        return client.deleteParameter(getDeleteParameterRequest(ssmDeleteParameterRequest.getParameterName()));
+    /**
+     * @param ssmPutParameterRequest
+     * @return true if success, false otherwise.
+     */
+    public boolean putParameter(SsmPutParameterRequest ssmPutParameterRequest) {
+        try {
+            PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName());
+            SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmPutParameterRequest.getRegion()).build();
+            client.putParameter(putParameterRequest);
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
     }
 
     private static DeleteParameterRequest getDeleteParameterRequest(ParameterName parameterName) {
         return DeleteParameterRequest.builder().name(parameterName.getName()).build();
     }
-    public PutParameterResponse putParameter(SsmPutParameterRequest ssmPutParameterRequest) {
-        PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName());
-        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmPutParameterRequest.getRegion()).build();
-        return client.putParameter(putParameterRequest);
-    }
-
     private static PutParameterRequest getCreateParameterRequest(ParameterName parameterName, PermissionSetName permissionSetName) {
         return PutParameterRequest.builder()
                             .dataType("String")

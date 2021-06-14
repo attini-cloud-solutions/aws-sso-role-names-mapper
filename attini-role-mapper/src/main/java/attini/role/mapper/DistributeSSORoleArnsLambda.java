@@ -53,28 +53,24 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
         if (eventName.equals("CreateRole")) {
             for(Region region : regions) {
-                try {
 
-                    SsmPutParameterRequest ssmPutParameterRequest = SsmPutParameterRequest.create(region, parameterName, permissionSetName);
-                    ssmService.putParameter(ssmPutParameterRequest);
+                SsmPutParameterRequest ssmPutParameterRequest = SsmPutParameterRequest.create(region, parameterName, permissionSetName);
+                if(ssmService.putParameter(ssmPutParameterRequest)) {
                     LOGGER.log(Logger.Level.INFO, "Saved: " + parameterName + " in region: " + region);
                 }
-                catch (SsmException e) {
-                    // TODO: Move Try/Catch logic to service class.
-                    // SsmException is internal to SsmService, should be in SsmService.
-                    LOGGER.warn("Could not create the parameter in " + region, e);
+                else {
+                    LOGGER.warn("Could not create the parameter in " + region);
                 }
             }
         }
         else if (eventName.equals("DeleteRole")) {
             for(Region region : regions) {
-                try {
-                    SsmDeleteParameterRequest ssmDeleteParameterRequest = SsmDeleteParameterRequest.create(region, parameterName);
-                    ssmService.deleteParameter(ssmDeleteParameterRequest);
+                SsmDeleteParameterRequest ssmDeleteParameterRequest = SsmDeleteParameterRequest.create(region, parameterName);
+                if(ssmService.deleteParameter(ssmDeleteParameterRequest)) {
                     LOGGER.log(Logger.Level.INFO,"Deleted: " + parameterName + " in region: " + region);
                 }
-                catch (SsmException e) {
-                    LOGGER.warn("Could not delete the parameter in " + region, e);
+                else {
+                    LOGGER.warn("Could not delete the parameter in " + region);
                 }
             }
         }
