@@ -1,8 +1,6 @@
 package attini.role.mapper;
 
-import attini.role.mapper.domain.ParameterName;
-import attini.role.mapper.domain.PermissionSetName;
-import attini.role.mapper.domain.RoleName;
+import attini.role.mapper.domain.*;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
@@ -53,34 +51,33 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
         ParameterName parameterName = ParameterName.create(permissionSetName);
         List<Region> regions = ssmService.getAllRegions();
 
-        if (eventName == "CreateRole") {
+        if (eventName.equals("CreateRole")) {
             for(Region region : regions) {
                 try {
-                    PutParameterRequest putParameterRequest = ssmService.getCreateParameterRequest(region, parameterName, permissionSetName);
-                    PutParameterResponse putParameterResponse = ssmService.putParameter(region, putParameterRequest);
+
+                    SsmPutParameterRequest ssmPutParameterRequest = SsmPutParameterRequest.create(region, parameterName, permissionSetName);
+                    ssmService.putParameter(ssmPutParameterRequest);
                     LOGGER.log(Logger.Level.INFO, "Saved: " + parameterName + " in region: " + region);
                 }
                 catch (SsmException e) {
                     // TODO: Move Try/Catch logic to service class.
                     // SsmException is internal to SsmService, should be in SsmService.
-                    LOGGER.log(Logger.Level.ERROR, "Could not create the parameter in " + region);
-                    LOGGER.log(Logger.Level.ERROR, "AWS error details: " + e.awsErrorDetails());
+                    LOGGER.warn("Could not create the parameter in " + region, e);
                 }
             }
         }
-        else if (eventName == "DeleteRole") {
+        else if (eventName.equals("DeleteRole")) {
             for(Region region : regions) {
                 try {
-                    DeleteParameterRequest deleteParameterRequest = ssmService.getDeleteParameterRequest(parameterName);
-                    DeleteParameterResponse deleteParameterResponse = ssmService.deleteParameter(region, deleteParameterRequest);
+                    SsmDeleteParameterRequest ssmDeleteParameterRequest = SsmDeleteParameterRequest.create(region, parameterName);
+                    ssmService.deleteParameter(ssmDeleteParameterRequest);
                     LOGGER.log(Logger.Level.INFO,"Deleted: " + parameterName + " in region: " + region);
                 }
                 catch (SsmException e) {
-                    LOGGER.log(Logger.Level.ERROR, "Could not delete the parameter in " + region);
-                    LOGGER.log(Logger.Level.ERROR, "AWS error details: " + e.awsErrorDetails());
+                    LOGGER.warn("Could not delete the parameter in " + region, e);
                 }
             }
         }
-        return new String("Success");
+        return "Success";
     }
 }

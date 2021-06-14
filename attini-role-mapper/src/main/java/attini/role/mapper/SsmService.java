@@ -5,6 +5,8 @@ import java.util.List;
 
 import attini.role.mapper.domain.ParameterName;
 import attini.role.mapper.domain.PermissionSetName;
+import attini.role.mapper.domain.SsmDeleteParameterRequest;
+import attini.role.mapper.domain.SsmPutParameterRequest;
 import com.amazonaws.services.kinesis.model.Consumer;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -42,7 +44,23 @@ public class SsmService {
         return regions;
     }
 
-    public PutParameterRequest getCreateParameterRequest(Region region, ParameterName parameterName, PermissionSetName permissionSetName) {
+
+
+    public DeleteParameterResponse deleteParameter(SsmDeleteParameterRequest ssmDeleteParameterRequest) {
+        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmDeleteParameterRequest.getRegion()).build();
+        return client.deleteParameter(getDeleteParameterRequest(ssmDeleteParameterRequest.getParameterName()));
+    }
+
+    private static DeleteParameterRequest getDeleteParameterRequest(ParameterName parameterName) {
+        return DeleteParameterRequest.builder().name(parameterName.getName()).build();
+    }
+    public PutParameterResponse putParameter(SsmPutParameterRequest ssmPutParameterRequest) {
+        PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName());
+        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmPutParameterRequest.getRegion()).build();
+        return client.putParameter(putParameterRequest);
+    }
+
+    private static PutParameterRequest getCreateParameterRequest(ParameterName parameterName, PermissionSetName permissionSetName) {
         return PutParameterRequest.builder()
                             .dataType("String")
                             .name(parameterName.getName())
@@ -51,19 +69,5 @@ public class SsmService {
                             .overwrite(true)
                             .tier("Standard")
                             .build();
-    }
-
-    public DeleteParameterRequest getDeleteParameterRequest(ParameterName parameterName) {
-        return DeleteParameterRequest.builder().name(parameterName.getName()).build();
-    }
-    
-    public DeleteParameterResponse deleteParameter(Region region, DeleteParameterRequest deleteParameterRequest) {
-        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
-        return client.deleteParameter(deleteParameterRequest);
-    }
-
-    public PutParameterResponse putParameter(Region region, PutParameterRequest parameterRequest) {
-        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
-        return client.putParameter(parameterRequest);  
     }
 }
