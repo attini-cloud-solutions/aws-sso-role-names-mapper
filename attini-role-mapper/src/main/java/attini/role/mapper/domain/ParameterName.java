@@ -10,9 +10,12 @@ public class ParameterName {
     }
 
     public static ParameterName create(PermissionSetName permissionSetName) {
-        return new ParameterName("/SSORoleArns/" + permissionSetName);
+        return new ParameterName("/attini/aws-sso-role-names-mapper/" + permissionSetName.getName());
     }
 
+    public static ParameterName create(String value) {
+        return new ParameterName(value);
+    }
     public String getName() {
         return name;
     }

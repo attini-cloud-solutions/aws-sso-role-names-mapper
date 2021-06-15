@@ -4,12 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import attini.role.mapper.domain.ParameterName;
-import attini.role.mapper.domain.PermissionSetName;
-import attini.role.mapper.domain.SsmDeleteParameterRequest;
-import attini.role.mapper.domain.SsmPutParameterRequest;
-import com.amazonaws.services.dynamodbv2.xspec.B;
-import com.amazonaws.services.kinesis.model.Consumer;
+import attini.role.mapper.domain.*;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -18,6 +13,7 @@ import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterabl
 
 public class SsmService {
 
+    // TODO make this to a builder instead.
     private final SsmClient ssmClient;
 
     public SsmService(SsmClient ssmClient) {
@@ -54,19 +50,29 @@ public class SsmService {
      * @return Set of parameters from path /attini/aws-sso-role-names-mapper
      */
     public HashSet<Parameter> getParameters(Region region) {
-        SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
-        GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/attini/aws-sso-role-names-mapper");
-        GetParametersByPathIterable iterable = client.getParametersByPathPaginator(requestBuilder.build());
         HashSet<Parameter> parameters = new HashSet<>();
-        iterable.stream().forEach(page -> parameters.addAll(page.parameters()));
-        return parameters;
+        try {
+            SsmClient ssmClient = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(region).build();
+            GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/attini/aws-sso-role-names-mapper");
+            GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
+            for (GetParametersByPathResponse response : iterable) {
+                parameters.addAll(response.parameters());
+            }
+            iterable.stream().forEach(page -> parameters.addAll(page.parameters()));
+        }
+        catch (Exception e) {
+            // TODO handle these exception better, one for "security token invalid".
+        }
+        finally {
+            return parameters;
+        }
     }
 
 
     /**
      *
      * @param ssmDeleteParameterRequest
-     * @return true if success, false otherwise.
+     * @return true if successfully deleted parameter in region, false otherwise.
      */
     public boolean deleteParameter(SsmDeleteParameterRequest ssmDeleteParameterRequest) {
         try {
@@ -81,11 +87,11 @@ public class SsmService {
 
     /**
      * @param ssmPutParameterRequest
-     * @return true if success, false otherwise.
+     * @return true if successfully deleted parameter in region, false otherwise.
      */
     public boolean putParameter(SsmPutParameterRequest ssmPutParameterRequest) {
         try {
-            PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName());
+            PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName(), ssmPutParameterRequest.getArn());
             SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmPutParameterRequest.getRegion()).build();
             client.putParameter(putParameterRequest);
             return true;
@@ -98,14 +104,14 @@ public class SsmService {
     private static DeleteParameterRequest getDeleteParameterRequest(ParameterName parameterName) {
         return DeleteParameterRequest.builder().name(parameterName.getName()).build();
     }
-    private static PutParameterRequest getCreateParameterRequest(ParameterName parameterName, PermissionSetName permissionSetName) {
+    private static PutParameterRequest getCreateParameterRequest(ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
         return PutParameterRequest.builder()
-                            .dataType("String")
+                            .type(ParameterType.STRING)
                             .name(parameterName.getName())
                             .description("Role arn for AWS SSO PermissionSet " + permissionSetName.getName())
-                            .value("CreateRole")
-                            .overwrite(true)
-                            .tier("Standard")
+                            .value(arn.getArn())
+                            .overwrite(true) // TODO Fraga Carl
+                            .tier(ParameterTier.STANDARD)
                             .build();
     }
 }

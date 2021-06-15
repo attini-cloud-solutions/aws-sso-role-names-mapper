@@ -10,7 +10,12 @@ public class PermissionSetName {
     }
 
     public static PermissionSetName create(String value) {
-        return new PermissionSetName(value);
+        try {
+            return new PermissionSetName(value.trim().split("_")[1]);
+        }
+        catch (Exception e){
+            throw new IllegalArgumentException("Error splitting value on '_' into PermissionSetName.", e);
+        }
     }
 
     public String getName() {
