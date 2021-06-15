@@ -1,5 +1,5 @@
 
-package attini.role.mapper;
+package attini.role.mapper.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,10 +12,8 @@ import static software.amazon.awssdk.regions.Region.EU_WEST_1;
 import static software.amazon.awssdk.regions.Region.EU_WEST_2;
 import static software.amazon.awssdk.regions.Region.US_EAST_1;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.inject.Inject;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
@@ -36,6 +35,9 @@ public class SsmServiceTest {
     SsmService ssmService;
 
     @Mock
+    SsmClientBuilder ssmClientBuilder;
+
+    @Mock
     SsmClient ssmClient;
 
     @Mock
@@ -43,12 +45,13 @@ public class SsmServiceTest {
 
     @BeforeEach
     public void setup() {
-        ssmService = new SsmService(ssmClient);
+        ssmService = new SsmService(ssmClientBuilder);
     }
 
     // TODO: Lägg till fler test med felhantering
     @Test
     public void getAllRegionsTest() {
+        when(ssmClientBuilder.build()).thenReturn(ssmClient);
         when(ssmClient.getParametersByPathPaginator(any(GetParametersByPathRequest.class)))
                 .thenReturn(getParametersByPathIterable);
 

@@ -1,23 +1,30 @@
-package attini.role.mapper;
+package attini.role.mapper.services;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import attini.role.mapper.domain.*;
+import org.jboss.logging.Logger;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 import software.amazon.awssdk.services.ssm.model.*;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
 
+import javax.inject.Inject;
+
 public class SsmService {
 
-    // TODO make this to a builder instead.
-    private final SsmClient ssmClient;
+    private final static Logger LOGGER = Logger.getLogger(SsmService.class);
 
-    public SsmService(SsmClient ssmClient) {
-        this.ssmClient = ssmClient;
+    private final SsmClientBuilder ssmClientBuilder;
+
+    @Inject
+    public SsmService(SsmClientBuilder ssmClient) {
+        this.ssmClientBuilder = ssmClient;
     }
 
 
@@ -27,7 +34,7 @@ public class SsmService {
      */
     public List<Region> getAllRegions() { // TODO should return Set<>
         GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions"); // /aws/service/global-infrastructure/services/ssm/regions
-        GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
+        GetParametersByPathIterable iterable = ssmClientBuilder.build().getParametersByPathPaginator(requestBuilder.build());
 
         ArrayList<Parameter> parameters = new ArrayList<>();
 
@@ -72,16 +79,41 @@ public class SsmService {
 
     /**
      *
+     * @param ssmDeleteParametersRequest
+     * @return true if successfully deleted parameters in region, false otherwise.
+     */
+    public boolean deleteParameters(SsmDeleteParametersRequest ssmDeleteParametersRequest) {
+        try {
+            SsmClient client = ssmClientBuilder.region(ssmDeleteParametersRequest.getRegion()).build();
+            DeleteParametersRequest deleteParametersRequest = DeleteParametersRequest
+                    .builder()
+                    .names(ssmDeleteParametersRequest.getParameterNames()
+                            .stream().map(ParameterName::getName)
+                            .collect(Collectors.toList()))
+                    .build();
+            client.deleteParameters(deleteParametersRequest);
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    /**
+     *
      * @param ssmDeleteParameterRequest
      * @return true if successfully deleted parameter in region, false otherwise.
      */
     public boolean deleteParameter(SsmDeleteParameterRequest ssmDeleteParameterRequest) {
         try {
-            SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmDeleteParameterRequest.getRegion()).build();
+            SsmClient client = ssmClientBuilder.region(ssmDeleteParameterRequest.getRegion()).build();
             client.deleteParameter(getDeleteParameterRequest(ssmDeleteParameterRequest.getParameterName()));
+            LOGGER.info("Deleted: " + ssmDeleteParameterRequest.getParameterName().getName() + " in region: " + ssmDeleteParameterRequest.getRegion());
             return true;
         }
         catch (Exception e) {
+            LOGGER.warn("Could not delete parameter " + ssmDeleteParameterRequest.getParameterName().getName() + " in region: " + ssmDeleteParameterRequest.getRegion());
             return false;
         }
     }
@@ -95,9 +127,11 @@ public class SsmService {
             PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName(), ssmPutParameterRequest.getArn());
             SsmClient client = SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).region(ssmPutParameterRequest.getRegion()).build();
             client.putParameter(putParameterRequest);
+            LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().getName() + " in region: " + ssmPutParameterRequest.getRegion());
             return true;
         }
         catch (Exception e) {
+            LOGGER.warn("Could not create parameter: " + ssmPutParameterRequest.getParameterName().getName() + " in region: " + ssmPutParameterRequest.getRegion());
             return false;
         }
     }

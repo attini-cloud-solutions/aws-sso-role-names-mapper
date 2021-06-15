@@ -1,4 +1,4 @@
-package attini.role.mapper;
+package attini.role.mapper.services;
 
 
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -9,12 +9,14 @@ import software.amazon.awssdk.services.iam.model.ListRolesRequest;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iam.paginators.ListRolesIterable;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class IamService {
     private final IamClientBuilder iamClientBuilder;
 
+    @Inject
     public IamService(IamClientBuilder iamClientBuilder) {
         this.iamClientBuilder = iamClientBuilder;
     }
