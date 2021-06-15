@@ -33,7 +33,6 @@ import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterabl
 @ExtendWith(MockitoExtension.class)
 public class SsmServiceTest {
 
-    @Inject
     SsmService ssmService;
 
     @Mock

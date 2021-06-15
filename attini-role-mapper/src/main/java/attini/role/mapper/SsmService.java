@@ -62,10 +62,11 @@ public class SsmService {
         }
         catch (Exception e) {
             // TODO handle these exception better, one for "security token invalid".
+            // log here
+
         }
-        finally {
-            return parameters;
-        }
+        return parameters;
+
     }
 
 

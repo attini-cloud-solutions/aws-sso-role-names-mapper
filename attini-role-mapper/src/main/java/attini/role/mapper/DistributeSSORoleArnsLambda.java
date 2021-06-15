@@ -7,14 +7,11 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
 import org.jboss.logging.Logger;
-import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListRolesRequest;
-import software.amazon.awssdk.services.iam.model.ListRolesResponse;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iam.paginators.ListRolesIterable;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -40,17 +37,19 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORoleArnsLambda.class);
 
-    //@Inject
-    SsmService ssmService;
+    @Inject
+    public DistributeSSORoleArnsLambda(SsmService ssmService, IamService iamService) {
+        this.ssmService = ssmService;
+        this.iamService = iamService;
+    }
+
+    private final SsmService ssmService;
+    private final IamService iamService;
 
     // TODO: Skriv logik för TriggerMonthly.
     @Override
     public DistributeSSORoleArnsLambdaResponse handleRequest(ScheduledEvent event, Context context) {
         LOGGER.info("Got event " + event);
-
-        // TESTING
-        ssmService = new SsmService(SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).build());
-
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode details = objectMapper.valueToTree(event.getDetail());
@@ -73,11 +72,14 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
     }
 
     public static void main(String[] args) {
-        DistributeSSORoleArnsLambda lambda = new DistributeSSORoleArnsLambda();
+        SsmService ssmService = new SsmService(SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).build());
+        IamService iamService = new IamService(IamClient.builder().httpClient(UrlConnectionHttpClient.create()));
+        DistributeSSORoleArnsLambda lambda = new DistributeSSORoleArnsLambda(ssmService, iamService);
         ScheduledEvent event = new ScheduledEvent();
-        ArrayList resources = new ArrayList<String>();
+        ArrayList<String> resources = new ArrayList<>();
         resources.add("arn:aws:events:us-east-1:123456789012:rule/-TriggerMonthly-");
         event.setResources(resources);
+
         lambda.handleRequest(event, null);
     }
 
@@ -85,55 +87,62 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
 
         DistributeSSORoleArnsLambdaResponse lambdaResponse = new DistributeSSORoleArnsLambdaResponse();
 
-        LinkedHashSet<Region> successfulCreateRegions = new LinkedHashSet<>();
-        LinkedHashSet<Region> successfulDeleteRegions = new LinkedHashSet<>();
-
-        IamClient iamClient = IamClient.builder().region(Region.AWS_GLOBAL).httpClient(UrlConnectionHttpClient.create()).build();
-        ListRolesIterable listRolesResponses = iamClient.listRolesPaginator(ListRolesRequest.builder().pathPrefix("/aws-reserved/sso.amazonaws.com/").build());
+        List<Role> roles = iamService.listAllRoles();
         List<Region> regions = ssmService.getAllRegions();
-        // Is in IAM not in parameters.
-        ArrayList<Role> iamRoles = new ArrayList<>();
-        listRolesResponses.roles().stream().forEach(role -> iamRoles.add(role));
         // TODO convert to functional?
+        // TODO Refactor into methods
         for(Region region : regions) {
             HashSet<Parameter> parameters = ssmService.getParameters(region);
-            if (parameters.size() == 0) {
+            if (parameters.isEmpty()) {
                 LOGGER.info("No parameters found in region: " + region + ", check if region is configured correctly.");
-                continue;
             }
-            for (Role role : iamRoles) {
-                Arn arn = Arn.create(role.arn());
-                PermissionSetName permissionSetName = PermissionSetName.create(role.roleName());
-                ParameterName parameterName = ParameterName.create(permissionSetName);
-                SsmPutParameterRequest putParameterRequest = SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn);
-                if (ssmService.putParameter(putParameterRequest)) {
-                    LOGGER.info("Saved: " + parameterName.getName() + " in region: " + region);
-                    //successfulCreateRegions.add(region);
-                }
-                else {
-                    LOGGER.warn("Could not create parameter: " + parameterName.getName() + " in region: " + region);
-                }
-            }
-            for (Parameter parameter : parameters){
-                if (iamRoles.stream().map(role -> role.arn()).collect(Collectors.toList()).contains(parameter.value()) == false){
-                    ParameterName parameterName = ParameterName.create(parameter.name());
-                    SsmDeleteParameterRequest deleteParameterRequest = SsmDeleteParameterRequest.create(region, parameterName);
-                    if (ssmService.deleteParameter(deleteParameterRequest)){
-                        LOGGER.info("Deleted: " + parameterName.getName() + " in region: " + region);
-                        successfulDeleteRegions.add(region);
-                    }
-                    else {
-                        LOGGER.warn("Could not delete parameter " + parameterName.getName() + " in region: " + region);
-                    }
-                }
+            else {
+                // Is in IAM not in parameters.
+                processRoles(roles, region);
+                // Is in parameters and shall be destroyed.
+                processParameters(roles, region, parameters);
             }
         }
-
-        // Is in parameters and shall be destroyed.
 
 
 
         return lambdaResponse;
+    }
+    // TODO getParametersWithoutRole
+    private void processParameters(List<Role> iamRoles, Region region, HashSet<Parameter> parameters) {
+        for (Parameter parameter : parameters) {
+            if (parameterHasNoRole(iamRoles, parameter)){
+                ParameterName parameterName = ParameterName.create(parameter.name());
+                SsmDeleteParameterRequest deleteParameterRequest = SsmDeleteParameterRequest.create(region, parameterName);
+                if (ssmService.deleteParameter(deleteParameterRequest)){
+                    LOGGER.info("Deleted: " + parameterName.getName() + " in region: " + region);
+
+                }
+                else {
+                    LOGGER.warn("Could not delete parameter " + parameterName.getName() + " in region: " + region);
+                }
+            }
+        }
+    }
+
+    private boolean parameterHasNoRole(List<Role> iamRoles, Parameter parameter) {
+        return iamRoles.stream().map(Role::arn).noneMatch(arn -> arn.equals(parameter.value()));
+    }
+
+    private void processRoles(List<Role> iamRoles, Region region) {
+        for (Role role : iamRoles) {
+            Arn arn = Arn.create(role.arn());
+            PermissionSetName permissionSetName = PermissionSetName.create(role.roleName());
+            ParameterName parameterName = ParameterName.create(permissionSetName);
+            SsmPutParameterRequest putParameterRequest = SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn);
+            if (ssmService.putParameter(putParameterRequest)) {
+                LOGGER.info("Saved: " + parameterName.getName() + " in region: " + region);
+
+            }
+            else {
+                LOGGER.warn("Could not create parameter: " + parameterName.getName() + " in region: " + region);
+            }
+        }
     }
 
     private DistributeSSORoleArnsLambdaResponse handleEventTrigger(JsonNode details) {
@@ -151,19 +160,16 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
         Arn arn = Arn.create(details.get("requestResponse").get("role").get("arn").asText());
         List<Region> regions = ssmService.getAllRegions();
 
-        LinkedHashSet<Region> successfulCreateRegions = new LinkedHashSet<>();
-        LinkedHashSet<Region> successfulDeleteRegions = new LinkedHashSet<>();
         if (eventName.equals("CreateRole")) {
             regions.stream().map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
                     .forEach(request -> {
                         if (ssmService.putParameter(request)) {
                             LOGGER.info("Saved: " + parameterName.getName() + " in region: " + request.getRegion());
-                            successfulCreateRegions.add(request.getRegion());
+                            lambdaResponse.addRegionToCreatedParameter(parameterName, request.getRegion());
                         } else {
                             LOGGER.warn("Could not create the parameter in " + request.getRegion());
                         }
                     });
-            lambdaResponse.parametersCreated.put(parameterName, successfulCreateRegions);
         }
 
         else if (eventName.equals("DeleteRole")) {
@@ -171,13 +177,12 @@ public class DistributeSSORoleArnsLambda implements RequestHandler<ScheduledEven
                     .forEach(request -> {
                         if(ssmService.deleteParameter(request)) {
                             LOGGER.info("Deleted: " + parameterName.getName() + " in region: " + request.getRegion());
-                            successfulDeleteRegions.add(request.getRegion());
+                            lambdaResponse.addRegionToDeletedParameter(parameterName, request.getRegion());
                         }
                         else {
                             LOGGER.warn("Could not delete the parameter in " + request.getRegion());
                         }
                     });
-            lambdaResponse.parametersDeleted.put(parameterName, successfulDeleteRegions);
         }
 
         return lambdaResponse;
