@@ -30,7 +30,6 @@ public class SsmFacade {
 
     /**
      * Ignores CN/gov regions.
-     *
      * @return all regions from /aws/service/global-infrastructure/regions.
      */
     public Set<Region> getAllRegions() {
@@ -50,7 +49,6 @@ public class SsmFacade {
     }
 
     /**
-     * @param region
      * @return Set of parameters from path /attini/aws-sso-role-names-mapper
      * Empty if exception thrown or no parameters found.
      */
@@ -75,7 +73,6 @@ public class SsmFacade {
 
 
     /**
-     * @param ssmDeleteParametersRequest
      * @return true if successfully deleted parameters in region, false otherwise.
      */
     public boolean deleteParameters(SsmDeleteParametersRequest ssmDeleteParametersRequest) {
@@ -97,7 +94,6 @@ public class SsmFacade {
 
 
     /**
-     * @param ssmDeleteParameterRequest
      * @return true if successfully deleted parameter in region, false otherwise.
      */
     public boolean deleteParameter(SsmDeleteParameterRequest ssmDeleteParameterRequest) {
@@ -113,13 +109,11 @@ public class SsmFacade {
     }
 
     /**
-     * @param ssmPutParameterRequest
      * @return true if successfully deleted parameter in region, false otherwise.
      */
     public boolean putParameter(SsmPutParameterRequest ssmPutParameterRequest) {
         try {
             PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName(), ssmPutParameterRequest.getArn());
-            // TODO: Använd clienten
             SsmClient client = ssmClientFactory.createSsmClient(ssmPutParameterRequest.getRegion());
             client.putParameter(putParameterRequest);
             LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().getName() + " in region: " + ssmPutParameterRequest.getRegion());

@@ -14,15 +14,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class IamFacade {
-    private final IamClientBuilder iamClientBuilder;
+    private final IamClient iamClient;
 
     @Inject
-    public IamFacade(IamClientBuilder iamClientBuilder) {
-        this.iamClientBuilder = iamClientBuilder;
-    }
+    public IamFacade(IamClient iamClient) { this.iamClient = iamClient; }
 
+    /**
+     * @return All roles on IAM from path /aws-reserved/sso.amazonaws.com/
+     */
     public List<Role> listAllRoles() {
-        IamClient iamClient = iamClientBuilder.region(Region.AWS_GLOBAL).httpClient(UrlConnectionHttpClient.create()).build();
         ListRolesIterable listRolesResponses = iamClient.listRolesPaginator(ListRolesRequest.builder().pathPrefix("/aws-reserved/sso.amazonaws.com/").build());
         return listRolesResponses
                 .roles()
