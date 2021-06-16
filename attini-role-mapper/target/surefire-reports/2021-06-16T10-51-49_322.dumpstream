@@ -1,4 +1,0 @@
-# Created at 2021-06-16T10:51:49.792
-Boot Manifest-JAR contains absolute paths in classpath 'D:\Development\Git Repos\aws-sso-role-names-mapper\attini-role-mapper\target\test-classes'
-Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
-
