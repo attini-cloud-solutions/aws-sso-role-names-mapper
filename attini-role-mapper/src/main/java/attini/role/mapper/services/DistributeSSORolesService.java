@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 
 import javax.inject.Inject;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -14,22 +15,17 @@ import java.util.stream.Collectors;
 public class DistributeSSORolesService {
 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesService.class);
-    private final IamFacade iamService;
     private final SsmFacade ssmFacade;
 
     @Inject
-    public DistributeSSORolesService(IamFacade iamService, SsmFacade ssmService) {
-        this.iamService = iamService;
+    public DistributeSSORolesService(SsmFacade ssmService) {
         this.ssmFacade = ssmService;
     }
 
     public DistributeSSORolesResponse monthlyCleanup(Set<Role> roles) {
 
-        // TODO: Ta in listorna istället
-        // List<Role> roles = iamService.listAllRoles();
         Set<Region> regions = ssmFacade.getAllRegions();
 
-        // TODO populate this response
         DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();
 
         for(Region region : regions) {
@@ -54,13 +50,18 @@ public class DistributeSSORolesService {
                 .collect(Collectors.toSet());
     }
 
-    private  Set<ParameterName> deleteParametersWithoutRole(Set<Role> roles, Region region, Set<Parameter> parameters) {
+    private Set<ParameterName> deleteParametersWithoutRole(Set<Role> roles, Region region, Set<Parameter> parameters) {
         Set<Parameter> parametersWithoutRole = getParametersWithoutRole(roles, parameters);
         SsmDeleteParametersRequest ssmDeleteParametersRequest = SsmDeleteParametersRequest.create(parametersWithoutRole, region);
-        ssmFacade.deleteParameters(ssmDeleteParametersRequest);
-        return parametersWithoutRole.stream()
-                .map(parameter -> ParameterName.create(parameter.name()))
-                .collect(Collectors.toSet());
+
+        if(ssmFacade.deleteParameters(ssmDeleteParametersRequest)) {
+            return parametersWithoutRole.stream()
+                    .map(parameter -> ParameterName.create(parameter.name()))
+                    .collect(Collectors.toSet());
+        }
+        else {
+            return new HashSet<>();
+        }
     }
 
     private Set<Parameter> getParametersWithoutRole(Set<Role> roles, Set<Parameter> parameters) {

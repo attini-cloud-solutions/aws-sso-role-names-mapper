@@ -17,7 +17,7 @@ public class BeanConfig {
 
     @ApplicationScoped
     public DistributeSSORolesService distributeSSORolesService() {
-        return new DistributeSSORolesService(iamService(), ssmService());
+        return new DistributeSSORolesService(ssmService());
     }
 
     @ApplicationScoped
