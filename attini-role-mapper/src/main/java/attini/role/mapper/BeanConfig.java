@@ -3,8 +3,8 @@ package attini.role.mapper;
 import javax.enterprise.context.ApplicationScoped;
 
 import attini.role.mapper.services.DistributeSSORolesService;
-import attini.role.mapper.services.IamService;
-import attini.role.mapper.services.SsmService;
+import attini.role.mapper.services.IamFacade;
+import attini.role.mapper.services.SsmFacade;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -19,12 +19,12 @@ public class BeanConfig {
     }
 
     @ApplicationScoped
-    public IamService iamService() {
-        return new IamService(IamClient.builder().httpClient(UrlConnectionHttpClient.create()));
+    public IamFacade iamService() {
+        return new IamFacade(IamClient.builder().httpClient(UrlConnectionHttpClient.create()));
     }
 
     @ApplicationScoped
-    public SsmService ssmService() {
-        return new SsmService(SsmClient.builder().httpClient(UrlConnectionHttpClient.create()));
-    };
+    public SsmFacade ssmService() {
+        return new SsmFacade(SsmClient.builder().httpClient(UrlConnectionHttpClient.create()));
+    }
 }

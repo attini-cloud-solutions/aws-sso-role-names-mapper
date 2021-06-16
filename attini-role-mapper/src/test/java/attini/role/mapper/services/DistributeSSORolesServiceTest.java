@@ -21,11 +21,12 @@ import static org.mockito.Mockito.when;
 class DistributeSSORolesServiceTest {
 
     private DistributeSSORolesService distributeSSORolesService;
-    @Mock
-    private IamService iamService;
 
     @Mock
-    private SsmService ssmService;
+    private IamFacade iamService;
+
+    @Mock
+    private SsmFacade ssmService;
 
     @BeforeEach
     void setUp() {

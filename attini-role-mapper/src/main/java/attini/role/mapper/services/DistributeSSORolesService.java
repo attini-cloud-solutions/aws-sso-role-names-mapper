@@ -9,22 +9,24 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
 import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DistributeSSORolesService {
 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesService.class);
-    private final IamService iamService;
-    private final SsmService ssmService;
+    private final IamFacade iamService;
+    private final SsmFacade ssmService;
 
     @Inject
-    public DistributeSSORolesService(IamService iamService, SsmService ssmService) {
+    public DistributeSSORolesService(IamFacade iamService, SsmFacade ssmService) {
         this.iamService = iamService;
         this.ssmService = ssmService;
     }
 
     public DistributeSSORolesResponse monthlyCleanup() {
 
+        // TODO: Ta in listorna istället
         List<Role> roles = iamService.listAllRoles();
         List<Region> regions = ssmService.getAllRegions();
 
@@ -32,7 +34,7 @@ public class DistributeSSORolesService {
         DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();
 
         for(Region region : regions) {
-            HashSet<Parameter> parameters = ssmService.getParameters(region);
+            Set<Parameter> parameters = ssmService.getParameters(region);
             if (parameters.isEmpty()) {
                 LOGGER.info("No parameters found in region: " + region + ", check if region is configured correctly.");
             }
@@ -44,21 +46,21 @@ public class DistributeSSORolesService {
 
         return distributeSSORolesResponse;
     }
+
     // TODO should return DistributeResponse (pass it in, then call addCreateParam...?)
     private void createParametersForAllSSORoles(List<Role> roles, Region region) {
         roles.stream().map(role -> buildSsmPutParameterRequest(role, region))
                 .forEach(ssmService::putParameter);
-
     }
 
     // TODO should return DistributeResponse
-    private void deleteParametersWithoutRole(List<Role> roles, Region region, HashSet<Parameter> parameters) {
+    private void deleteParametersWithoutRole(List<Role> roles, Region region, Set<Parameter> parameters) {
         List<Parameter> parametersWithoutRole = getParametersWithoutRole(roles, region, parameters);
         SsmDeleteParametersRequest ssmDeleteParametersRequest = SsmDeleteParametersRequest.create(parametersWithoutRole, region);
         ssmService.deleteParameters(ssmDeleteParametersRequest);
     }
 
-    public List<Parameter> getParametersWithoutRole(List<Role> roles, Region region, HashSet<Parameter> parameters) {
+    private List<Parameter> getParametersWithoutRole(List<Role> roles, Region region, Set<Parameter> parameters) {
         return parameters.stream()
                 .filter(parameter -> parameterHasNoRole(roles, parameter))
                 .collect(Collectors.toList());
@@ -75,15 +77,5 @@ public class DistributeSSORolesService {
         return iamRoles.stream()
                 .map(Role::arn)
                 .noneMatch(arn -> arn.equals(parameter.value()));
-    }
-
-    public void getRoles(List<Role> iamRoles, Region region) {
-        for (Role role : iamRoles) {
-            Arn arn = Arn.create(role.arn());
-            PermissionSetName permissionSetName = PermissionSetName.create(role.roleName());
-            ParameterName parameterName = ParameterName.create(permissionSetName);
-            SsmPutParameterRequest putParameterRequest = SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn);
-
-        }
     }
 }

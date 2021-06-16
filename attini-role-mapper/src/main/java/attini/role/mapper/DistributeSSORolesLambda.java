@@ -2,8 +2,8 @@ package attini.role.mapper;
 
 import attini.role.mapper.domain.*;
 import attini.role.mapper.services.DistributeSSORolesService;
-import attini.role.mapper.services.IamService;
-import attini.role.mapper.services.SsmService;
+import attini.role.mapper.services.IamFacade;
+import attini.role.mapper.services.SsmFacade;
 import com.amazonaws.services.acmpca.model.InvalidArgsException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -11,17 +11,10 @@ import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.logging.Logger;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.iam.IamClient;
-import software.amazon.awssdk.services.iam.model.Role;
-import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.model.Parameter;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
@@ -31,22 +24,21 @@ import java.util.List;
 // aws cloudformation deploy --template cf-template.yaml --stack-name joel-test --capabilites CAPABILITY_IAM
 // mvn clean package && sam local invoke -t target/sam.jvm.yaml -e payload.json
 //
-@Named("DistributeSSORoleArnsLambda")
+@Named("DistributeSSORolesLambda")
 public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, DistributeSSORolesResponse> {
 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesLambda.class);
 
     @Inject
-    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, SsmService ssmService, IamService iamService) {
+    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, SsmFacade ssmService, IamFacade iamService) {
         this.distributeSSORolesService = distributeSSORolesService;
         this.ssmService = ssmService;
         this.iamService = iamService;
     }
     private final DistributeSSORolesService distributeSSORolesService;
-    private final SsmService ssmService;
-    private final IamService iamService;
+    private final SsmFacade ssmService;
+    private final IamFacade iamService;
 
-    // TODO: Skriv logik för TriggerMonthly.
     @Override
     public DistributeSSORolesResponse handleRequest(ScheduledEvent event, Context context) {
         LOGGER.info("Got event " + event);

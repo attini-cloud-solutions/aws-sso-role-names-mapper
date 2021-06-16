@@ -13,18 +13,20 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IamService {
+public class IamFacade {
     private final IamClientBuilder iamClientBuilder;
 
     @Inject
-    public IamService(IamClientBuilder iamClientBuilder) {
+    public IamFacade(IamClientBuilder iamClientBuilder) {
         this.iamClientBuilder = iamClientBuilder;
     }
 
     public List<Role> listAllRoles() {
         IamClient iamClient = iamClientBuilder.region(Region.AWS_GLOBAL).httpClient(UrlConnectionHttpClient.create()).build();
         ListRolesIterable listRolesResponses = iamClient.listRolesPaginator(ListRolesRequest.builder().pathPrefix("/aws-reserved/sso.amazonaws.com/").build());
-        List<Role> roles = listRolesResponses.roles().stream().collect(Collectors.toList());
-        return roles;
+        return listRolesResponses
+                .roles()
+                .stream()
+                .collect(Collectors.toList());
     }
 }

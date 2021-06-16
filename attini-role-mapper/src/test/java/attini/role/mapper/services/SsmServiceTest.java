@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterabl
 @ExtendWith(MockitoExtension.class)
 public class SsmServiceTest {
 
-    SsmService ssmService;
+    SsmFacade ssmService;
 
     @Mock
     SsmClientBuilder ssmClientBuilder;
@@ -45,7 +45,7 @@ public class SsmServiceTest {
 
     @BeforeEach
     public void setup() {
-        ssmService = new SsmService(ssmClientBuilder);
+        ssmService = new SsmFacade(ssmClientBuilder);
     }
 
     // TODO: Lägg till fler test med felhantering
