@@ -1,0 +1,14 @@
+attini\role\mapper\facades\SsmFacade.class
+attini\role\mapper\factories\SsmClientFactory.class
+attini\role\mapper\domain\Arn.class
+attini\role\mapper\BeanConfig.class
+attini\role\mapper\domain\SsmDeleteParametersRequest.class
+attini\role\mapper\domain\RoleName.class
+attini\role\mapper\services\DistributeSSORolesService.class
+attini\role\mapper\domain\PermissionSetName.class
+attini\role\mapper\domain\SsmPutParameterRequest.class
+attini\role\mapper\DistributeSSORolesLambda.class
+attini\role\mapper\domain\ParameterName.class
+attini\role\mapper\domain\DistributeSSORolesResponse.class
+attini\role\mapper\domain\SsmDeleteParameterRequest.class
+attini\role\mapper\facades\IamFacade.class

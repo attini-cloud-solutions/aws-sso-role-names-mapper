@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: attini.role.mapper.services.SsmServiceTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.925 s - in attini.role.mapper.services.SsmServiceTest
