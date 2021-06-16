@@ -14,8 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import attini.role.mapper.domain.ParameterName;
-import attini.role.mapper.domain.SsmDeleteParametersRequest;
+import attini.role.mapper.domain.*;
 import attini.role.mapper.facades.SsmFacade;
 import attini.role.mapper.factories.SsmClientFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,11 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
-import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
-import software.amazon.awssdk.services.ssm.model.DeleteParametersRequest;
-import software.amazon.awssdk.services.ssm.model.Parameter;
-import software.amazon.awssdk.services.ssm.model.SsmException;
+import software.amazon.awssdk.services.ssm.model.*;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
 
 @ExtendWith(MockitoExtension.class)
@@ -92,6 +87,19 @@ public class SsmFacadeTest {
 
         // Irrelevant what Region or Set is used.
         assertFalse(ssmFacade.deleteParameters(SsmDeleteParametersRequest.create(Region.EU_WEST_3, new HashSet<>())));
+    }
+
+    @Test
+    public void putParameters_SsmError_ShouldReturnFalse() {
+        when(ssmClientFactoryMock.createSsmClient(any(Region.class))).thenReturn(ssmClientMock);
+        when(ssmClientMock.putParameter(any(PutParameterRequest.class))).thenThrow(SsmException.builder().build());
+
+        // Irrelevant what arguments are used.
+        assertFalse(ssmFacade.putParameter(SsmPutParameterRequest.create(
+                Region.EU_NORTH_1,
+                ParameterName.create("/attini/aws-sso-role-names-mapper/AdministratorAccess"),
+                PermissionSetName.create("AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad"),
+                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_Billing_c8106817c1780052"))));
     }
 
     private static Parameter toParam(String value) {
