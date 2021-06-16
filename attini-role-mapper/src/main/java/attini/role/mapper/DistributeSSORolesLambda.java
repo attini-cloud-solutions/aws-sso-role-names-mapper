@@ -2,8 +2,8 @@ package attini.role.mapper;
 
 import attini.role.mapper.domain.*;
 import attini.role.mapper.services.DistributeSSORolesService;
-import attini.role.mapper.services.IamFacade;
-import attini.role.mapper.services.SsmFacade;
+import attini.role.mapper.facades.IamFacade;
+import attini.role.mapper.facades.SsmFacade;
 import com.amazonaws.services.acmpca.model.InvalidArgsException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -30,14 +30,14 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesLambda.class);
 
     @Inject
-    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, SsmFacade ssmService, IamFacade iamService) {
+    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, SsmFacade ssmFacade, IamFacade iamFacade) {
         this.distributeSSORolesService = distributeSSORolesService;
-        this.ssmService = ssmService;
-        this.iamService = iamService;
+        this.ssmFacade = ssmFacade;
+        this.iamFacade = iamFacade;
     }
     private final DistributeSSORolesService distributeSSORolesService;
-    private final SsmFacade ssmService;
-    private final IamFacade iamService;
+    private final SsmFacade ssmFacade;
+    private final IamFacade iamFacade;
 
     @Override
     public DistributeSSORolesResponse handleRequest(ScheduledEvent event, Context context) {
@@ -49,7 +49,7 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
             throw new IllegalArgumentException("Resource array in json payload must contain exactly one element.");
         }
         if (event.getResources().get(0).contains("-TriggerMonthly-")) {
-            return distributeSSORolesService.monthlyCleanup(iamService.listAllRoles());
+            return distributeSSORolesService.monthlyCleanup(iamFacade.listAllRoles());
         }
         else {
             try {
@@ -62,20 +62,6 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
         }
     }
 
-//    public static void main(String[] args) {
-//        SsmService ssmService = new SsmService(SsmClient.builder().httpClient(UrlConnectionHttpClient.create()));
-//        IamService iamService = new IamService(IamClient.builder().httpClient(UrlConnectionHttpClient.create()));
-//        DistributeSSORolesService distributeSSORolesService = new DistributeSSORolesService(iamService, ssmService);
-//        DistributeSSORolesLambda lambda = new DistributeSSORolesLambda(distributeSSORolesService, ssmService, iamService);
-//        ScheduledEvent event = new ScheduledEvent();
-//        ArrayList<String> resources = new ArrayList<>();
-//        resources.add("arn:aws:events:us-east-1:123456789012:rule/-TriggerMonthly-");
-//        event.setResources(resources);
-//
-//        lambda.handleRequest(event, null);
-//    }
-
-
     private DistributeSSORolesResponse handleEventTrigger(JsonNode details) {
         DistributeSSORolesResponse lambdaResponse = new DistributeSSORolesResponse();
         RoleName roleName = RoleName.create(details.get("requestParameters").get("roleName").asText());
@@ -85,16 +71,15 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
         }
 
         String eventName = details.get("requestParameters").get("eventName").asText();
-        // TODO make sure roleName String split always works...
         PermissionSetName permissionSetName = PermissionSetName.create(details.get("requestParameters").get("roleName").asText());
         ParameterName parameterName = ParameterName.create(permissionSetName);
         Arn arn = Arn.create(details.get("requestResponse").get("role").get("arn").asText());
-        Set<Region> regions = ssmService.getAllRegions();
+        Set<Region> regions = ssmFacade.getAllRegions();
 
         if (eventName.equals("CreateRole")) {
             regions.stream().map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
                     .forEach(request -> {
-                        if (ssmService.putParameter(request)) {
+                        if (ssmFacade.putParameter(request)) {
                             LOGGER.info("Saved: " + parameterName.getName() + " in region: " + request.getRegion());
                             lambdaResponse.addCreatedParameter(parameterName, request.getRegion());
                         } else {
@@ -106,7 +91,7 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
         else if (eventName.equals("DeleteRole")) {
             regions.stream().map(region -> SsmDeleteParameterRequest.create(region, parameterName))
                     .forEach(request -> {
-                        if(ssmService.deleteParameter(request)) {
+                        if(ssmFacade.deleteParameter(request)) {
                             LOGGER.info("Deleted: " + parameterName.getName() + " in region: " + request.getRegion());
                             lambdaResponse.addDeletedParameter(parameterName, request.getRegion());
                         }

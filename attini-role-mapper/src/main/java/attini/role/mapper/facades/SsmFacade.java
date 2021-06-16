@@ -1,4 +1,4 @@
-package attini.role.mapper.services;
+package attini.role.mapper.facades;
 
 import java.util.HashSet;
 import java.util.List;
@@ -8,10 +8,8 @@ import java.util.stream.Collectors;
 import attini.role.mapper.domain.*;
 import attini.role.mapper.factories.SsmClientFactory;
 import org.jboss.logging.Logger;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 import software.amazon.awssdk.services.ssm.model.*;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
 
@@ -37,7 +35,6 @@ public class SsmFacade {
         GetParametersByPathIterable iterable = ssmClientFactory
                 .createGlobalSsmClient()
                 .getParametersByPathPaginator(requestBuilder.build());
-
         return iterable
                 .stream()
                 .map(GetParametersByPathResponse::parameters)
@@ -55,7 +52,6 @@ public class SsmFacade {
     public Set<Parameter> getParameters(Region region) {
         Set<Parameter> parameters = new HashSet<>();
         try {
-
             SsmClient ssmClient = ssmClientFactory.createSsmClient(region);
             GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/attini/aws-sso-role-names-mapper");
             GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());

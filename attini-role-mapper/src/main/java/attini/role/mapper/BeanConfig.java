@@ -4,12 +4,11 @@ import javax.enterprise.context.ApplicationScoped;
 
 import attini.role.mapper.factories.SsmClientFactory;
 import attini.role.mapper.services.DistributeSSORolesService;
-import attini.role.mapper.services.IamFacade;
-import attini.role.mapper.services.SsmFacade;
+import attini.role.mapper.facades.IamFacade;
+import attini.role.mapper.facades.SsmFacade;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
-import software.amazon.awssdk.services.ssm.SsmClient;
 
 
 @ApplicationScoped

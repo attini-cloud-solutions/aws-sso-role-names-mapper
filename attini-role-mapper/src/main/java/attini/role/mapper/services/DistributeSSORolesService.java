@@ -1,6 +1,7 @@
 package attini.role.mapper.services;
 
 import attini.role.mapper.domain.*;
+import attini.role.mapper.facades.SsmFacade;
 import org.jboss.logging.Logger;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.model.Role;
@@ -8,7 +9,6 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
 
 import javax.inject.Inject;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 

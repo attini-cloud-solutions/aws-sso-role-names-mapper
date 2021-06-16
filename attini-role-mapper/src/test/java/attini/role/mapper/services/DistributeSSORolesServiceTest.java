@@ -4,8 +4,8 @@ import attini.role.mapper.domain.DistributeSSORolesResponse;
 import attini.role.mapper.domain.ParameterName;
 import attini.role.mapper.domain.SsmDeleteParametersRequest;
 import attini.role.mapper.domain.SsmPutParameterRequest;
+import attini.role.mapper.facades.SsmFacade;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -57,7 +57,7 @@ class DistributeSSORolesServiceTest {
                 .build();
         Parameter toBeDeletedParameter = Parameter.builder()
                 .name(toBeDeleted.getName())
-                .value("DeleteMePlease")
+                .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_DeleteMePlease_f627296b4ac7ac6c")
                 .build();
 
         Set<Parameter> parameters = new HashSet<Parameter>();
