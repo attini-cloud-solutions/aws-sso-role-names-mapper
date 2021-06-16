@@ -15,7 +15,6 @@ import software.amazon.awssdk.regions.Region;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.List;
 import java.util.Set;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
@@ -46,12 +45,11 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode details = objectMapper.valueToTree(event.getDetail());
-        //TODO make sure only one resource is in json payload
         if (event.getResources().size() > 1 || event.getResources().isEmpty()){
             throw new IllegalArgumentException("Resource array in json payload must contain exactly one element.");
         }
         if (event.getResources().get(0).contains("-TriggerMonthly-")) {
-            return distributeSSORolesService.monthlyCleanup();
+            return distributeSSORolesService.monthlyCleanup(iamService.listAllRoles());
         }
         else {
             try {
@@ -98,7 +96,7 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
                     .forEach(request -> {
                         if (ssmService.putParameter(request)) {
                             LOGGER.info("Saved: " + parameterName.getName() + " in region: " + request.getRegion());
-                            lambdaResponse.addRegionToCreatedParameter(parameterName, request.getRegion());
+                            lambdaResponse.addCreatedParameter(parameterName, request.getRegion());
                         } else {
                             LOGGER.warn("Could not create the parameter in " + request.getRegion());
                         }
@@ -110,7 +108,7 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
                     .forEach(request -> {
                         if(ssmService.deleteParameter(request)) {
                             LOGGER.info("Deleted: " + parameterName.getName() + " in region: " + request.getRegion());
-                            lambdaResponse.addRegionToDeletedParameter(parameterName, request.getRegion());
+                            lambdaResponse.addDeletedParameter(parameterName, request.getRegion());
                         }
                         else {
                             LOGGER.warn("Could not delete the parameter in " + request.getRegion());

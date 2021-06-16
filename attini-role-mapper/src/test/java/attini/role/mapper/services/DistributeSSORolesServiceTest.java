@@ -11,9 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.model.Role;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,15 +22,14 @@ class DistributeSSORolesServiceTest {
 
     private DistributeSSORolesService distributeSSORolesService;
 
-    @Mock
-    private IamFacade iamService;
+    private IamFacade iamFacade;
 
     @Mock
-    private SsmFacade ssmService;
+    private SsmFacade ssmFacade;
 
     @BeforeEach
     void setUp() {
-        distributeSSORolesService = new DistributeSSORolesService(iamService, ssmService);
+        distributeSSORolesService = new DistributeSSORolesService(iamFacade, ssmFacade);
     }
 
 
@@ -45,20 +42,20 @@ class DistributeSSORolesServiceTest {
         ParameterName admin = ParameterName.create("/attini/aws-sso-role-names-mapper/AdministratorAccess");
         ParameterName toBeDeleted = ParameterName.create("/attini/aws-sso-role-names-mapper/ToBeDeleted");
 
-        expectedResponse.addRegionToCreatedParameter(database, Region.EU_WEST_1);
-        expectedResponse.addRegionToCreatedParameter(database, Region.US_EAST_1);
-        expectedResponse.addRegionToCreatedParameter(database, Region.EU_NORTH_1);
-        expectedResponse.addRegionToCreatedParameter(billing, Region.EU_WEST_1);
-        expectedResponse.addRegionToCreatedParameter(billing, Region.US_EAST_1);
-        expectedResponse.addRegionToCreatedParameter(billing, Region.EU_NORTH_1);
-        expectedResponse.addRegionToCreatedParameter(admin, Region.EU_WEST_1);
-        expectedResponse.addRegionToCreatedParameter(admin, Region.US_EAST_1);
-        expectedResponse.addRegionToCreatedParameter(admin, Region.EU_NORTH_1);
-        expectedResponse.addRegionToDeletedParameter(toBeDeleted, Region.EU_WEST_1);
-        expectedResponse.addRegionToDeletedParameter(toBeDeleted, Region.US_EAST_1);
-        expectedResponse.addRegionToDeletedParameter(toBeDeleted, Region.EU_NORTH_1);
+        expectedResponse.addCreatedParameter(database, Region.EU_WEST_1);
+        expectedResponse.addCreatedParameter(database, Region.US_EAST_1);
+        expectedResponse.addCreatedParameter(database, Region.EU_NORTH_1);
+        expectedResponse.addCreatedParameter(billing, Region.EU_WEST_1);
+        expectedResponse.addCreatedParameter(billing, Region.US_EAST_1);
+        expectedResponse.addCreatedParameter(billing, Region.EU_NORTH_1);
+        expectedResponse.addCreatedParameter(admin, Region.EU_WEST_1);
+        expectedResponse.addCreatedParameter(admin, Region.US_EAST_1);
+        expectedResponse.addCreatedParameter(admin, Region.EU_NORTH_1);
+        expectedResponse.addDeletedParameter(toBeDeleted, Region.EU_WEST_1);
+        expectedResponse.addDeletedParameter(toBeDeleted, Region.US_EAST_1);
+        expectedResponse.addDeletedParameter(toBeDeleted, Region.EU_NORTH_1);
 
-        List<Role> roles = new ArrayList<>();
+        Set<Role> roles = new HashSet<>();
         roles.add(Role.builder()
                 .roleName("AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad")
                 .arn("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad")
@@ -76,10 +73,9 @@ class DistributeSSORolesServiceTest {
         regions.add(Region.US_EAST_1);
         regions.add(Region.EU_NORTH_1);
 
-        when(iamService.listAllRoles()).thenReturn(roles);
-        when(ssmService.getAllRegions()).thenReturn(regions);
+        when(ssmFacade.getAllRegions()).thenReturn(regions);
 
-        DistributeSSORolesResponse actualResponse = distributeSSORolesService.monthlyCleanup();
+        DistributeSSORolesResponse actualResponse = distributeSSORolesService.monthlyCleanup(roles);
 
         assertEquals(expectedResponse, actualResponse);
     }

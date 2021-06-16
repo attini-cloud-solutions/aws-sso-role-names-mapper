@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.iam.paginators.ListRolesIterable;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class IamFacade {
@@ -22,11 +23,11 @@ public class IamFacade {
     /**
      * @return All roles on IAM from path /aws-reserved/sso.amazonaws.com/
      */
-    public List<Role> listAllRoles() {
+    public Set<Role> listAllRoles() {
         ListRolesIterable listRolesResponses = iamClient.listRolesPaginator(ListRolesRequest.builder().pathPrefix("/aws-reserved/sso.amazonaws.com/").build());
         return listRolesResponses
                 .roles()
                 .stream()
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

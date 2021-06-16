@@ -2,7 +2,7 @@ package attini.role.mapper.domain;
 
 import java.util.Objects;
 
-public class ParameterName {
+public class ParameterName implements Comparable<ParameterName> {
     private final String name;
 
     private ParameterName(String value) {
@@ -18,5 +18,10 @@ public class ParameterName {
     }
     public String getName() {
         return name;
+    }
+
+    @Override
+    public int compareTo(ParameterName name1) {
+        return this.name.compareTo(name1.getName());
     }
 }
