@@ -80,6 +80,7 @@ public class SsmFacadeTest {
         assertTrue(ssmFacade.getParameters(Region.AP_NORTHEAST_3).isEmpty());
     }
 
+    // TODO: Testa också när dom returnerar True.
     @Test
     public void deleteParameters_SsmError_ShouldReturnFalse() {
         when(ssmClientFactoryMock.createSsmClient(any(Region.class))).thenReturn(ssmClientMock);

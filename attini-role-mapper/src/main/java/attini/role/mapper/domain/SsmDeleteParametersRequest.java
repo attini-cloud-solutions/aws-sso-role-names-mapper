@@ -18,7 +18,6 @@ public class SsmDeleteParametersRequest {
         this.parameterNames = requireNonNull(parameterNames);
     }
 
-
     public Region getRegion() {
         return region;
     }
@@ -34,6 +33,4 @@ public class SsmDeleteParametersRequest {
     public static SsmDeleteParametersRequest create(Region region, Set<ParameterName> parameterNames) {
         return new SsmDeleteParametersRequest(region, parameterNames);
     }
-
-
 }

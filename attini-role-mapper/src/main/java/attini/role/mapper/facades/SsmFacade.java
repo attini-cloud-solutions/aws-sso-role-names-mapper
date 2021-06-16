@@ -1,5 +1,6 @@
 package attini.role.mapper.facades;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,21 +51,20 @@ public class SsmFacade {
      * Empty if exception thrown or no parameters found.
      */
     public Set<Parameter> getParameters(Region region) {
-        Set<Parameter> parameters = new HashSet<>();
         try {
             SsmClient ssmClient = ssmClientFactory.createSsmClient(region);
             GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/attini/aws-sso-role-names-mapper");
             GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
 
-            parameters = iterable.stream()
+            return iterable.stream()
                     .map(GetParametersByPathResponse::parameters)
                     .flatMap(List::stream)
                     .collect(Collectors.toSet());
 
         } catch (SsmException e) {
             LOGGER.warn("Could not get parameters from region: " + region, e);
+            return Collections.emptySet();
         }
-        return parameters;
     }
 
 
