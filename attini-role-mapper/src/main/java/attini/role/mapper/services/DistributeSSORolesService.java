@@ -28,7 +28,7 @@ public class DistributeSSORolesService {
 
         // TODO: Ta in listorna istället
         List<Role> roles = iamService.listAllRoles();
-        List<Region> regions = ssmService.getAllRegions();
+        Set<Region> regions = ssmService.getAllRegions();
 
         // TODO populate this response
         DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();

@@ -2,6 +2,7 @@ package attini.role.mapper;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import attini.role.mapper.factories.SsmClientFactory;
 import attini.role.mapper.services.DistributeSSORolesService;
 import attini.role.mapper.services.IamFacade;
 import attini.role.mapper.services.SsmFacade;
@@ -25,6 +26,11 @@ public class BeanConfig {
 
     @ApplicationScoped
     public SsmFacade ssmService() {
-        return new SsmFacade(SsmClient.builder().httpClient(UrlConnectionHttpClient.create()));
+        return new SsmFacade(ssmClientFactory());
+    }
+
+    @ApplicationScoped
+    public SsmClientFactory ssmClientFactory() {
+        return new SsmClientFactory();
     }
 }

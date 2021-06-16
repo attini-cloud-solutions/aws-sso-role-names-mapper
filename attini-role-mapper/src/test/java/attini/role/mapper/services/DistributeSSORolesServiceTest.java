@@ -12,7 +12,9 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.model.Role;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -69,7 +71,7 @@ class DistributeSSORolesServiceTest {
                 .roleName("AWSReservedSSO_AdministratorAccess_f627296b4ac7ac6c")
                 .arn("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_AdministratorAccess_f627296b4ac7ac6c")
                 .build());
-        List<Region> regions = new ArrayList<>();
+        Set<Region> regions = new HashSet<>();
         regions.add(Region.EU_WEST_1);
         regions.add(Region.US_EAST_1);
         regions.add(Region.EU_NORTH_1);

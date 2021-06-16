@@ -13,8 +13,10 @@ import static software.amazon.awssdk.regions.Region.EU_WEST_2;
 import static software.amazon.awssdk.regions.Region.US_EAST_1;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import attini.role.mapper.factories.SsmClientFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,19 +25,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
 
 @ExtendWith(MockitoExtension.class)
-public class SsmServiceTest {
+public class SsmFacadeTest {
 
-    SsmFacade ssmService;
+    SsmFacade ssmFacade;
 
     @Mock
-    SsmClientBuilder ssmClientBuilder;
+    SsmClientFactory ssmClientFactory;
 
     @Mock
     SsmClient ssmClient;
@@ -45,13 +46,13 @@ public class SsmServiceTest {
 
     @BeforeEach
     public void setup() {
-        ssmService = new SsmFacade(ssmClientBuilder);
+        ssmFacade = new SsmFacade(ssmClientFactory);
     }
 
     // TODO: Lägg till fler test med felhantering
     @Test
     public void getAllRegionsTest() {
-        when(ssmClientBuilder.build()).thenReturn(ssmClient);
+        when(ssmClientFactory.createGlobalSsmClient()).thenReturn(ssmClient);
         when(ssmClient.getParametersByPathPaginator(any(GetParametersByPathRequest.class)))
                 .thenReturn(getParametersByPathIterable);
 
@@ -64,7 +65,7 @@ public class SsmServiceTest {
 
         when(getParametersByPathIterable.stream()).thenReturn(responseStream);
 
-        List<Region> regions = ssmService.getAllRegions();
+        Set<Region> regions = ssmFacade.getAllRegions();
 
         assertEquals(3,regions.size());
         assertTrue(regions.containsAll(List.of(EU_WEST_1, US_EAST_1, EU_NORTH_1)));

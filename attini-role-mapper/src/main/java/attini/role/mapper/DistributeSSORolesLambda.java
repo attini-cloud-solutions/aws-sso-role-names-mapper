@@ -16,6 +16,7 @@ import software.amazon.awssdk.regions.Region;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.List;
+import java.util.Set;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
 
@@ -90,7 +91,7 @@ public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, 
         PermissionSetName permissionSetName = PermissionSetName.create(details.get("requestParameters").get("roleName").asText());
         ParameterName parameterName = ParameterName.create(permissionSetName);
         Arn arn = Arn.create(details.get("requestResponse").get("role").get("arn").asText());
-        List<Region> regions = ssmService.getAllRegions();
+        Set<Region> regions = ssmService.getAllRegions();
 
         if (eventName.equals("CreateRole")) {
             regions.stream().map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
