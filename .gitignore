@@ -29,3 +29,6 @@ attini-role-mapper/target
 .gradle
 .project
 .settings
+.iml
+.vscode
+bin/
