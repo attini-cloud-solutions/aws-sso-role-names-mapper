@@ -1,9 +1,6 @@
 package attini.role.mapper.services;
 
-import attini.role.mapper.domain.DistributeSSORolesResponse;
-import attini.role.mapper.domain.ParameterName;
-import attini.role.mapper.domain.SsmDeleteParametersRequest;
-import attini.role.mapper.domain.SsmPutParameterRequest;
+import attini.role.mapper.domain.*;
 import attini.role.mapper.facades.SsmFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,16 +24,22 @@ class DistributeSSORolesServiceTest {
     private DistributeSSORolesService distributeSSORolesService;
 
     @Mock
-    private SsmFacade ssmFacade;
+    private SsmFacade ssmFacadeMock;
 
+    private Set<Region> regions;
     @BeforeEach
     void setUp() {
-        distributeSSORolesService = new DistributeSSORolesService(ssmFacade);
+        regions = new HashSet<>();
+        regions.add(Region.EU_WEST_1);
+        regions.add(Region.US_EAST_1);
+        regions.add(Region.EU_NORTH_1);
+        when(ssmFacadeMock.getAllRegions()).thenReturn(regions);
+        distributeSSORolesService = new DistributeSSORolesService(ssmFacadeMock);
     }
 
 
     @Test
-    void monthlyCleanup_AllRolesHaveParameters_ShouldPass() {
+    void handleMonthlyEvent_AllRolesHaveParameters_ShouldPass() {
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
         ParameterName database = ParameterName.create("/attini/aws-sso-role-names-mapper/DatabaseAdministrator");
         ParameterName billing = ParameterName.create("/attini/aws-sso-role-names-mapper/Billing");
@@ -93,20 +96,57 @@ class DistributeSSORolesServiceTest {
                 .roleName("AWSReservedSSO_AdministratorAccess_f627296b4ac7ac6c")
                 .arn("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_AdministratorAccess_f627296b4ac7ac6c")
                 .build());
-        Set<Region> regions = new HashSet<>();
-        regions.add(Region.EU_WEST_1);
-        regions.add(Region.US_EAST_1);
-        regions.add(Region.EU_NORTH_1);
 
-        when(ssmFacade.getAllRegions()).thenReturn(regions);
-        when(ssmFacade.getParameters(any(Region.class))).thenReturn(parameters);
-        when(ssmFacade.putParameter(any(SsmPutParameterRequest.class))).thenReturn(true);
-        when(ssmFacade.deleteParameters(any(SsmDeleteParametersRequest.class))).thenReturn(true);
+        when(ssmFacadeMock.getAllRegions()).thenReturn(this.regions);
+        when(ssmFacadeMock.getParameters(any(Region.class))).thenReturn(parameters);
+        when(ssmFacadeMock.putParameter(any(SsmPutParameterRequest.class))).thenReturn(true);
+        when(ssmFacadeMock.deleteParameters(any(SsmDeleteParametersRequest.class))).thenReturn(true);
 
 
-        DistributeSSORolesResponse actualResponse = distributeSSORolesService.monthlyCleanup(roles);
+        DistributeSSORolesResponse actualResponse = distributeSSORolesService.handleMonthlyEvent(roles);
 
         assertEquals(expectedResponse.getParametersCreated(), actualResponse.getParametersCreated());
         assertEquals(expectedResponse.getParametersDeleted(), actualResponse.getParametersDeleted());
     }
+
+    @Test
+    void handleCreateRoleEvent_ValidCreateRoleEvent_ShouldPass() {
+
+        when(ssmFacadeMock.putParameter(any(SsmPutParameterRequest.class))).thenReturn(true);
+        CreateRoleEvent createRoleEvent = CreateRoleEvent.create(
+                RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558"),
+                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest3_58dcaf6a4cfad558"));
+        DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
+
+        expectedResponse.addCreatedParameter(createRoleEvent.getParameterName(), this.regions);
+        DistributeSSORolesResponse actualResponse = distributeSSORolesService.handleCreateRoleEvent(createRoleEvent);
+        assertEquals(expectedResponse.getParametersCreated().get(Region.EU_WEST_1),
+                actualResponse.getParametersCreated().get(Region.EU_WEST_1));
+        assertEquals(expectedResponse.getParametersCreated().get(Region.US_EAST_1),
+                actualResponse.getParametersCreated().get(Region.US_EAST_1));
+        assertEquals(expectedResponse.getParametersCreated().get(Region.EU_NORTH_1),
+                actualResponse.getParametersCreated().get(Region.EU_NORTH_1));
+
+    }
+
+
+    @Test
+    void handleDeleteRoleEvent_ValidDeleteRoleEvent_ShouldPass() {
+
+        when(ssmFacadeMock.deleteParameter(any(SsmDeleteParameterRequest.class))).thenReturn(true);
+        DeleteRoleEvent deleteRoleEvent = DeleteRoleEvent.create(
+                RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558"));
+        DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
+
+        expectedResponse.addDeletedParameter(deleteRoleEvent.getParameterName(), this.regions);
+        DistributeSSORolesResponse actualResponse = distributeSSORolesService.handleDeleteRoleEvent(deleteRoleEvent);
+        assertEquals(expectedResponse.getParametersDeleted().get(Region.EU_WEST_1),
+                actualResponse.getParametersDeleted().get(Region.EU_WEST_1));
+        assertEquals(expectedResponse.getParametersDeleted().get(Region.US_EAST_1),
+                actualResponse.getParametersDeleted().get(Region.US_EAST_1));
+        assertEquals(expectedResponse.getParametersDeleted().get(Region.EU_NORTH_1),
+                actualResponse.getParametersDeleted().get(Region.EU_NORTH_1));
+
+    }
+
 }

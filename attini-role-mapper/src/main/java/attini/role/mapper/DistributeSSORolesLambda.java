@@ -1,25 +1,16 @@
 package attini.role.mapper;
 
 import attini.role.mapper.domain.*;
+import attini.role.mapper.domain.exceptions.InvalidEventPayloadException;
 import attini.role.mapper.services.DistributeSSORolesService;
 import attini.role.mapper.facades.IamFacade;
-import attini.role.mapper.facades.SsmFacade;
-import com.amazonaws.services.acmpca.model.InvalidArgsException;
-import com.amazonaws.services.kinesisanalytics.model.InvalidArgumentException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.logging.Logger;
-import software.amazon.awssdk.regions.Region;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.ArrayList;
 import java.util.Map;
-import java.util.Set;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
 
@@ -51,14 +42,13 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
             } else if (eventName.equals("DeleteRole")) {
                 return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(event));
             } else {
-                throw new IllegalArgumentException("\"eventName\" field must be CreateRole or DeleteRole.");
+                throw new InvalidEventPayloadException("\"eventName\" field must be CreateRole or DeleteRole.");
             }
         } else if (event.containsKey("resources") && event.get("resources").toString().contains("-TriggerMonthly-")) {
-            return distributeSSORolesService.monthlyCleanup(iamFacade.listAllRoles());
+            return distributeSSORolesService.handleMonthlyEvent(iamFacade.listAllRoles());
         } else {
-            throw new IllegalArgumentException("Illegal Event.");
+            throw new InvalidEventPayloadException();
         }
-
     }
 }
 

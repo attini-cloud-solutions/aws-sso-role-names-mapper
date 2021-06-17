@@ -4,6 +4,10 @@ public class InvalidEventPayloadException extends IllegalArgumentException{
     public InvalidEventPayloadException(String s){
         super(s);
     }
+
+    public InvalidEventPayloadException() {
+        super();
+    }
     public InvalidEventPayloadException(Exception e){
         super(e);
     }

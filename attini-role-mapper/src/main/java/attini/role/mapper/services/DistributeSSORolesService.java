@@ -43,6 +43,25 @@ public class DistributeSSORolesService {
         return distributeSSORolesResponse;
     }
 
+    public DistributeSSORolesResponse handleMonthlyEvent(Set<Role> roles) {
+
+        Set<Region> regions = ssmFacade.getAllRegions();
+        DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();
+
+        for (Region region : regions) {
+            Set<Parameter> parameters = ssmFacade.getParameters(region);
+            if (parameters.isEmpty()) {
+                LOGGER.info("No parameters found in region: " + region + ", check if region is configured correctly.");
+            } else {
+                distributeSSORolesResponse.addCreatedParameters(createParametersForAllSSORoles(roles, region), region);
+                distributeSSORolesResponse.addDeletedParameters(deleteParametersWithoutRole(roles, region, parameters), region);
+            }
+        }
+
+        return distributeSSORolesResponse;
+    }
+
+
     private Set<Region> createParameter(PermissionSetName permissionSetName, ParameterName parameterName, Arn arn) {
         return regions.stream()
                 .map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
@@ -57,26 +76,6 @@ public class DistributeSSORolesService {
                 .filter(ssmFacade::deleteParameter)
                 .map(SsmDeleteParameterRequest::getRegion)
                 .collect(Collectors.toSet());
-    }
-
-
-    public DistributeSSORolesResponse monthlyCleanup(Set<Role> roles) {
-
-        Set<Region> regions = ssmFacade.getAllRegions();
-
-        DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();
-
-        for (Region region : regions) {
-            Set<Parameter> parameters = ssmFacade.getParameters(region);
-            if (parameters.isEmpty()) {
-                LOGGER.info("No parameters found in region: " + region + ", check if region is configured correctly.");
-            } else {
-                distributeSSORolesResponse.addCreatedParameters(createParametersForAllSSORoles(roles, region), region);
-                distributeSSORolesResponse.addDeletedParameters(deleteParametersWithoutRole(roles, region, parameters), region);
-            }
-        }
-
-        return distributeSSORolesResponse;
     }
 
     private Set<ParameterName> createParametersForAllSSORoles(Set<Role> roles, Region region) {

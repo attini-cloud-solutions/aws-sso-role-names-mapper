@@ -28,8 +28,8 @@ public class CreateRoleEventTest {
         CreateRoleEvent actualCreateRoleEvent = CreateRoleEvent.create(event);
 
         CreateRoleEvent expectedCreateRoleEvent = CreateRoleEvent.create(
-                RoleName.create("AWSReservedSSO_test-latest_58dcaf6a4cfad558"),
-                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest_58dcaf6a4cfad558"));
+                RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558"),
+                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest3_58dcaf6a4cfad558"));
         assertEquals(expectedCreateRoleEvent.getRoleName().toString(), actualCreateRoleEvent.getRoleName().toString());
         assertEquals(expectedCreateRoleEvent.getArn().toString(), actualCreateRoleEvent.getArn().toString());
 
