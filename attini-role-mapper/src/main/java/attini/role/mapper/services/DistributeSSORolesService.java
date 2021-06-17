@@ -39,21 +39,19 @@ public class DistributeSSORolesService {
         Set<Region> regions = ssmFacade.getAllRegions();
 
         if (eventName.equals("CreateRole")) {
-            regions.stream().map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
-                    .forEach(request -> {
-                        if (ssmFacade.putParameter(request)) {
-                            LOGGER.info("Saved: " + parameterName.getName() + " in region: " + request.getRegion());
-                            lambdaResponse.addCreatedParameter(parameterName, request.getRegion());
-                        } else {
-                            LOGGER.warn("Could not create the parameter in " + request.getRegion());
-                        }
-                    });
+            distributeSSORolesResponse.addCreatedParameter(parameterName, createParameter(permissionSetName, parameterName, arn, regions));
         } else if (eventName.equals("DeleteRole")) {
-            // TODO: Fixa det här
-            distributeSSORolesResponse.addDeletedParameter(parameterName, regions);
+            distributeSSORolesResponse.addDeletedParameter(parameterName, deleteParameter(parameterName, regions));
         }
+        return distributeSSORolesResponse;
+    }
 
-        return lambdaResponse;
+    private Set<Region> createParameter(PermissionSetName permissionSetName, ParameterName parameterName, Arn arn, Set<Region> regions) {
+        return regions.stream()
+                .map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
+                .filter(ssmFacade::putParameter)
+                .map(SsmPutParameterRequest::getRegion)
+                .collect(Collectors.toSet());
     }
 
     private Set<Region> deleteParameter(ParameterName parameterName, Set<Region> regions) {
@@ -62,7 +60,6 @@ public class DistributeSSORolesService {
                 .filter(ssmFacade::deleteParameter)
                 .map(SsmDeleteParameterRequest::getRegion)
                 .collect(Collectors.toSet());
-
     }
 
 

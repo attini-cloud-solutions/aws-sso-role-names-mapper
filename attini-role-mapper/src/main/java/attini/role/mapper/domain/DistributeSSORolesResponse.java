@@ -29,15 +29,26 @@ public class DistributeSSORolesResponse {
         parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName());
     }
 
+    public void addCreatedParameter(ParameterName parameterName, Set<Region> regions) {
+        regions.forEach(region -> parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName()));
+    }
+
+    public void addDeletedParameter(ParameterName parameterName, Set<Region> regions) {
+        regions.forEach(region -> parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName()));
+    }
+
     public void addCreatedParameters(Set<ParameterName> parameterNames, Region region) {
         parametersCreated.putIfAbsent(region, new TreeSet<>(parameterNames.stream()
                 .map(ParameterName::getName)
                 .collect(Collectors.toSet())));
     }
 
+
     public void addDeletedParameters(Set<ParameterName> parameterNames, Region region) {
         parametersDeleted.putIfAbsent(region, new TreeSet<>(parameterNames.stream()
                 .map(ParameterName::getName)
                 .collect(Collectors.toSet())));
     }
+
+
 }
