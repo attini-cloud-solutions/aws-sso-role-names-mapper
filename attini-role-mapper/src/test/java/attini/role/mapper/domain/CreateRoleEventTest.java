@@ -18,6 +18,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked") //TODO, unchecked casts är dålig praxis och kompilatorn kommer varna.
+// Inget problem då detta endast är tester men ni kan be kompilatorn ignorera dessa med annotationen ovan.
+// Den kan sättas på metoder eller hela klasser. Bör användas sparsamt.
 public class CreateRoleEventTest {
 
     ObjectMapper mapper = new ObjectMapper();

@@ -28,8 +28,8 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
 
     @Inject
     public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, IamFacade iamFacade) {
-        this.distributeSSORolesService = distributeSSORolesService;
-        this.iamFacade = iamFacade;
+        this.distributeSSORolesService = distributeSSORolesService; //TODO null check
+        this.iamFacade = iamFacade; //TODO null check
     }
 
     @Override

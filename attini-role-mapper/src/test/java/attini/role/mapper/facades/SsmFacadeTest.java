@@ -47,7 +47,7 @@ public class SsmFacadeTest {
         ssmFacade = new SsmFacade(ssmClientFactoryMock);
     }
 
-    @Test
+    @Test //TODO snyggt med alla tester, men shouldPass känns något redundant då alla tester borde passera :)
     public void getAllRegions_ValidAPIResponse_ShouldPass() {
         when(ssmClientFactoryMock.createGlobalSsmClient()).thenReturn(ssmClientMock);
         when(ssmClientMock.getParametersByPathPaginator(any(GetParametersByPathRequest.class)))

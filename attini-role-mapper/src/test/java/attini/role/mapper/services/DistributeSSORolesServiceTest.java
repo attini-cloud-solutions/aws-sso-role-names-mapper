@@ -63,7 +63,7 @@ class DistributeSSORolesServiceTest {
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_DeleteMePlease_f627296b4ac7ac6c")
                 .build();
 
-        Set<Parameter> parameters = new HashSet<Parameter>();
+        Set<Parameter> parameters = new HashSet<Parameter>(); //TODO Explicit typ behövs inte på höger sida sen java 8
         parameters.add(databaseParameter);
         parameters.add(billingParameter);
         parameters.add(adminParameter);

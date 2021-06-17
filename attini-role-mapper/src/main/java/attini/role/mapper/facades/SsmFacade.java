@@ -39,7 +39,7 @@ public class SsmFacade {
                 .stream()
                 .map(GetParametersByPathResponse::parameters)
                 .flatMap(List::stream)
-                .filter(parameter -> !parameter.value().contains("-gov-") && !parameter.value().contains("cn-"))
+                .filter(parameter -> !parameter.value().contains("-gov-") && !parameter.value().contains("cn-")) //TODO kanske bryta ut till en metod med en förklaring varför dom exkluderas?
                 .map(Parameter::value)
                 .map(Region::of)
                 .collect(Collectors.toSet());

@@ -8,7 +8,7 @@ public class SsmPutParameterRequest {
     private final Region region;
     private final ParameterName parameterName;
     private final PermissionSetName permissionSetName;
-    private final Arn arn;
+    private final Arn arn; //TODO Arn kan betyda många olika saker i AWS så ett något tydligare namn skulle kunna vara bra på fältet
 
     public SsmPutParameterRequest(Region region, ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
         this.region = requireNonNull(region);

@@ -20,10 +20,11 @@ public class DistributeSSORolesService {
     private final SsmFacade ssmFacade;
     private final Set<Region> regions;
 
-    @Inject
+    @Inject //TODO ni behöver ingen annotation här då ni skapar den i er BeanConfig
     public DistributeSSORolesService(SsmFacade ssmFacade) {
         this.ssmFacade = ssmFacade;
-        this.regions = ssmFacade.getAllRegions();
+        this.regions = ssmFacade.getAllRegions(); //TODO kalla inte på en service i konstruktorn här.
+        // Det gör servicen stateful och kan inte återanvändas säkert ifall regioner skulle ha förändrats
     }
 
     public DistributeSSORolesResponse handleCreateRoleEvent(CreateRoleEvent createRoleEvent) {
@@ -99,12 +100,15 @@ public class DistributeSSORolesService {
         }
     }
 
+
+    //TODO kan vara static den inte använder sig av nån data från det instansierade objektet
     private Set<Parameter> getParametersWithoutRole(Set<Role> roles, Set<Parameter> parameters) {
         return parameters.stream()
                 .filter(parameter -> parameterHasNoRole(roles, parameter))
                 .collect(Collectors.toSet());
     }
 
+    //TODO kan vara static den inte använder sig av nån data från det instansierade objektet
     private SsmPutParameterRequest buildSsmPutParameterRequest(Role role, Region region) {
         Arn arn = Arn.create(role.arn());
         PermissionSetName permissionSetName = PermissionSetName.create(role.roleName());
@@ -112,6 +116,7 @@ public class DistributeSSORolesService {
         return SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn);
     }
 
+    //TODO kan vara static den inte använder sig av nån data från det instansierade objektet
     private boolean parameterHasNoRole(Set<Role> iamRoles, Parameter parameter) {
         return iamRoles.stream()
                 .map(Role::arn)
