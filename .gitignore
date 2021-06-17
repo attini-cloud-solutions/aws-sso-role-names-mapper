@@ -30,3 +30,5 @@ attini-role-mapper/target
 .project
 .settings
 .iml
+.vscode
+bin/
