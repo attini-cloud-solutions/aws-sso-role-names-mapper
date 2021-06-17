@@ -9,6 +9,6 @@ public class SsmClientFactory {
         return SsmClient.builder().region(region).httpClient(UrlConnectionHttpClient.create()).build();
     }
     public SsmClient createGlobalSsmClient() {
-        return SsmClient.builder().region(Region.AWS_GLOBAL).httpClient(UrlConnectionHttpClient.create()).build();
+        return SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
     }
 }

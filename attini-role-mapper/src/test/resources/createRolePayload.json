@@ -1,0 +1,54 @@
+{
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "AssumedRole",
+    "principalId": "AROA4OFPIPBH5C23ZIMEF:AWS-SSO",
+    "arn": "arn:aws:sts::855066048591:assumed-role/AWSServiceRoleForSSO/AWS-SSO",
+    "accountId": "855066048591",
+    "accessKeyId": "ASIA4OFPIPBHZW5IYB5A",
+    "sessionContext": {
+      "sessionIssuer": {
+        "type": "Role",
+        "principalId": "AROA4OFPIPBH5C23ZIMEF",
+        "arn": "arn:aws:iam::855066048591:role/aws-service-role/sso.amazonaws.com/AWSServiceRoleForSSO",
+        "accountId": "855066048591",
+        "userName": "AWSServiceRoleForSSO"
+      },
+      "webIdFederationData": {},
+      "attributes": {
+        "mfaAuthenticated": "false",
+        "creationDate": "2021-06-17T08:00:15Z"
+      }
+    },
+    "invokedBy": "sso.amazonaws.com"
+  },
+  "eventTime": "2021-06-17T08:00:15Z",
+  "eventSource": "iam.amazonaws.com",
+  "eventName": "CreateRole",
+  "awsRegion": "us-east-1",
+  "sourceIPAddress": "sso.amazonaws.com",
+  "userAgent": "sso.amazonaws.com",
+  "requestParameters": {
+    "path": "/aws-reserved/sso.amazonaws.com/eu-west-1/",
+    "roleName": "AWSReservedSSO_test-latest_58dcaf6a4cfad558",
+    "assumeRolePolicyDocument": "{  \"Version\": \"2012-10-17\",  \"Statement\": {    \"Effect\": \"Allow\",    \"Action\": [      \"sts:AssumeRoleWithSAML\",      \"sts:TagSession\"    ],    \"Principal\": {\"Federated\": \"arn:aws:iam::855066048591:saml-provider/AWSSSO_3b5dd82fde6551ff_DO_NOT_DELETE\"},    \"Condition\": {\"StringEquals\": {\"SAML:aud\": \"https://signin.aws.amazon.com/saml\"}}  }}",
+    "maxSessionDuration": 43200
+  },
+  "responseElements": {
+    "role": {
+      "path": "/aws-reserved/sso.amazonaws.com/eu-west-1/",
+      "roleName": "AWSReservedSSO_test-latest_58dcaf6a4cfad558",
+      "roleId": "AROA4OFPIPBH5KCHYQQFZ",
+      "arn": "arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest_58dcaf6a4cfad558",
+      "createDate": "Jun 17, 2021 8:00:15 AM",
+      "assumeRolePolicyDocument": "%7B%20%20%22Version%22%3A%20%222012-10-17%22%2C%20%20%22Statement%22%3A%20%7B%20%20%20%20%22Effect%22%3A%20%22Allow%22%2C%20%20%20%20%22Action%22%3A%20%5B%20%20%20%20%20%20%22sts%3AAssumeRoleWithSAML%22%2C%20%20%20%20%20%20%22sts%3ATagSession%22%20%20%20%20%5D%2C%20%20%20%20%22Principal%22%3A%20%7B%22Federated%22%3A%20%22arn%3Aaws%3Aiam%3A%3A855066048591%3Asaml-provider%2FAWSSSO_3b5dd82fde6551ff_DO_NOT_DELETE%22%7D%2C%20%20%20%20%22Condition%22%3A%20%7B%22StringEquals%22%3A%20%7B%22SAML%3Aaud%22%3A%20%22https%3A%2F%2Fsignin.aws.amazon.com%2Fsaml%22%7D%7D%20%20%7D%7D"
+    }
+  },
+  "requestID": "2bcb4d97-d56c-4c15-a9ad-7b1d08c10add",
+  "eventID": "509a4de0-4100-47c8-b6da-a1de584ad46c",
+  "readOnly": false,
+  "eventType": "AwsApiCall",
+  "managementEvent": true,
+  "eventCategory": "Management",
+  "recipientAccountId": "855066048591"
+}

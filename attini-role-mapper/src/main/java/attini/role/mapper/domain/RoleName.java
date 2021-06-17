@@ -13,7 +13,8 @@ public class RoleName {
         return new RoleName(value);
     }
 
-    public String getName() {
+    @Override
+    public String toString() {
         return name;
     }
 }

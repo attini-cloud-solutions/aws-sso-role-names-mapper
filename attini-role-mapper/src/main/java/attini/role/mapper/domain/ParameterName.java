@@ -10,18 +10,19 @@ public class ParameterName implements Comparable<ParameterName> {
     }
 
     public static ParameterName create(PermissionSetName permissionSetName) {
-        return new ParameterName("/attini/aws-sso-role-names-mapper/" + permissionSetName.getName());
+        return new ParameterName("/attini/aws-sso-role-names-mapper/" + permissionSetName.toString());
     }
 
     public static ParameterName create(String value) {
         return new ParameterName(value);
     }
-    public String getName() {
+    @Override
+    public String toString() {
         return name;
     }
 
     @Override
     public int compareTo(ParameterName name1) {
-        return this.name.compareTo(name1.getName());
+        return this.name.compareTo(name1.toString());
     }
 }

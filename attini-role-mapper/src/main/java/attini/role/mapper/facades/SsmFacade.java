@@ -1,7 +1,6 @@
 package attini.role.mapper.facades;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -77,7 +76,7 @@ public class SsmFacade {
             DeleteParametersRequest deleteParametersRequest = DeleteParametersRequest
                     .builder()
                     .names(ssmDeleteParametersRequest.getParameterNames()
-                            .stream().map(ParameterName::getName)
+                            .stream().map(ParameterName::toString)
                             .collect(Collectors.toList()))
                     .build();
             client.deleteParameters(deleteParametersRequest);
@@ -96,10 +95,10 @@ public class SsmFacade {
         try {
             SsmClient client = ssmClientFactory.createSsmClient(ssmDeleteParameterRequest.getRegion());
             client.deleteParameter(getDeleteParameterRequest(ssmDeleteParameterRequest.getParameterName()));
-            LOGGER.info("Deleted: " + ssmDeleteParameterRequest.getParameterName().getName() + " in region: " + ssmDeleteParameterRequest.getRegion());
+            LOGGER.info("Deleted: " + ssmDeleteParameterRequest.getParameterName().toString() + " in region: " + ssmDeleteParameterRequest.getRegion());
             return true;
         } catch (SsmException e) {
-            LOGGER.warn("Could not delete parameter " + ssmDeleteParameterRequest.getParameterName().getName() + " in region: " + ssmDeleteParameterRequest.getRegion(), e);
+            LOGGER.warn("Could not delete parameter " + ssmDeleteParameterRequest.getParameterName().toString() + " in region: " + ssmDeleteParameterRequest.getRegion(), e);
             return false;
         }
     }
@@ -112,24 +111,24 @@ public class SsmFacade {
             PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName(), ssmPutParameterRequest.getArn());
             SsmClient client = ssmClientFactory.createSsmClient(ssmPutParameterRequest.getRegion());
             client.putParameter(putParameterRequest);
-            LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().getName() + " in region: " + ssmPutParameterRequest.getRegion());
+            LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().toString() + " in region: " + ssmPutParameterRequest.getRegion());
             return true;
         } catch (SsmException e) {
-            LOGGER.warn("Could not create parameter: " + ssmPutParameterRequest.getParameterName().getName() + " in region: " + ssmPutParameterRequest.getRegion(), e);
+            LOGGER.warn("Could not create parameter: " + ssmPutParameterRequest.getParameterName().toString() + " in region: " + ssmPutParameterRequest.getRegion(), e);
             return false;
         }
     }
 
     private static DeleteParameterRequest getDeleteParameterRequest(ParameterName parameterName) {
-        return DeleteParameterRequest.builder().name(parameterName.getName()).build();
+        return DeleteParameterRequest.builder().name(parameterName.toString()).build();
     }
 
     private static PutParameterRequest getCreateParameterRequest(ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
         return PutParameterRequest.builder()
                 .type(ParameterType.STRING)
-                .name(parameterName.getName())
-                .description("Role arn for AWS SSO PermissionSet " + permissionSetName.getName())
-                .value(arn.getArn())
+                .name(parameterName.toString())
+                .description("Role arn for AWS SSO PermissionSet " + permissionSetName.toString())
+                .value(arn.toString())
                 .overwrite(true)
                 .tier(ParameterTier.STANDARD)
                 .build();

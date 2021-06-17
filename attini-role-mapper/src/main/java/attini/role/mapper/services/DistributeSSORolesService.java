@@ -18,35 +18,32 @@ public class DistributeSSORolesService {
 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesService.class);
     private final SsmFacade ssmFacade;
+    private final Set<Region> regions;
 
     @Inject
-    public DistributeSSORolesService(SsmFacade ssmService) {
-        this.ssmFacade = ssmService;
+    public DistributeSSORolesService(SsmFacade ssmFacade) {
+        this.ssmFacade = ssmFacade;
+        this.regions = ssmFacade.getAllRegions();
     }
 
-    private DistributeSSORolesResponse handleEventTrigger(JsonNode details) {
+    public DistributeSSORolesResponse handleCreateRoleEvent(CreateRoleEvent createRoleEvent) {
         DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();
-        RoleName roleName = RoleName.create(details.get("requestParameters").get("roleName").asText());
-
-        if (!roleName.getName().startsWith("AWSReservedSSO")) {
-            throw new IllegalArgumentException("Invalid event, please verify the cloudtrail filter");
-        }
-
-        String eventName = details.get("requestParameters").get("eventName").asText();
-        PermissionSetName permissionSetName = PermissionSetName.create(details.get("requestParameters").get("roleName").asText());
-        ParameterName parameterName = ParameterName.create(permissionSetName);
-        Arn arn = Arn.create(details.get("requestResponse").get("role").get("arn").asText());
-        Set<Region> regions = ssmFacade.getAllRegions();
-
-        if (eventName.equals("CreateRole")) {
-            distributeSSORolesResponse.addCreatedParameter(parameterName, createParameter(permissionSetName, parameterName, arn, regions));
-        } else if (eventName.equals("DeleteRole")) {
-            distributeSSORolesResponse.addDeletedParameter(parameterName, deleteParameter(parameterName, regions));
-        }
+        distributeSSORolesResponse.addCreatedParameter(createRoleEvent.getParameterName(),
+                createParameter(
+                        createRoleEvent.getPermissionSetName(),
+                        createRoleEvent.getParameterName(),
+                        createRoleEvent.getArn()));
         return distributeSSORolesResponse;
     }
 
-    private Set<Region> createParameter(PermissionSetName permissionSetName, ParameterName parameterName, Arn arn, Set<Region> regions) {
+    public DistributeSSORolesResponse handleDeleteRoleEvent(DeleteRoleEvent deleteRoleEvent) {
+        DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();
+        distributeSSORolesResponse.addDeletedParameter(deleteRoleEvent.getParameterName(),
+                deleteParameter(deleteRoleEvent.getParameterName()));
+        return distributeSSORolesResponse;
+    }
+
+    private Set<Region> createParameter(PermissionSetName permissionSetName, ParameterName parameterName, Arn arn) {
         return regions.stream()
                 .map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
                 .filter(ssmFacade::putParameter)
@@ -54,7 +51,7 @@ public class DistributeSSORolesService {
                 .collect(Collectors.toSet());
     }
 
-    private Set<Region> deleteParameter(ParameterName parameterName, Set<Region> regions) {
+    private Set<Region> deleteParameter(ParameterName parameterName) {
         return regions.stream()
                 .map(region -> SsmDeleteParameterRequest.create(region, parameterName))
                 .filter(ssmFacade::deleteParameter)

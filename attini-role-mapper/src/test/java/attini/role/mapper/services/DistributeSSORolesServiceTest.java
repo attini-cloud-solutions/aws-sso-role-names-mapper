@@ -44,19 +44,19 @@ class DistributeSSORolesServiceTest {
         ParameterName toBeDeleted = ParameterName.create("/attini/aws-sso-role-names-mapper/ToBeDeleted");
 
         Parameter databaseParameter = Parameter.builder()
-                .name(database.getName())
+                .name(database.toString())
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad")
                 .build();
         Parameter billingParameter = Parameter.builder()
-                .name(billing.getName())
+                .name(billing.toString())
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_Billing_c8106817c1780052")
                 .build();
         Parameter adminParameter = Parameter.builder()
-                .name(admin.getName())
+                .name(admin.toString())
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_AdministratorAccess_f627296b4ac7ac6c")
                 .build();
         Parameter toBeDeletedParameter = Parameter.builder()
-                .name(toBeDeleted.getName())
+                .name(toBeDeleted.toString())
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_DeleteMePlease_f627296b4ac7ac6c")
                 .build();
 

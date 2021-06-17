@@ -9,6 +9,7 @@ import com.amazonaws.services.kinesisanalytics.model.InvalidArgumentException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.logging.Logger;
@@ -16,6 +17,8 @@ import software.amazon.awssdk.regions.Region;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Set;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
@@ -26,37 +29,36 @@ import java.util.Set;
 // mvn clean package && sam local invoke -t target/sam.jvm.yaml -e payload.json
 //
 @Named("DistributeSSORolesLambda")
-public class DistributeSSORolesLambda implements RequestHandler<ScheduledEvent, DistributeSSORolesResponse> {
+public class DistributeSSORolesLambda implements RequestHandler<Map<String, Object>, DistributeSSORolesResponse> {
 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesLambda.class);
+    private final DistributeSSORolesService distributeSSORolesService;
+    private final IamFacade iamFacade;
 
     @Inject
-    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, SsmFacade ssmFacade, IamFacade iamFacade) {
+    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, IamFacade iamFacade) {
         this.distributeSSORolesService = distributeSSORolesService;
-        this.ssmFacade = ssmFacade;
         this.iamFacade = iamFacade;
     }
 
-    private final DistributeSSORolesService distributeSSORolesService;
-    private final SsmFacade ssmFacade;
-    private final IamFacade iamFacade;
-
     @Override
-    public DistributeSSORolesResponse handleRequest(ScheduledEvent event, Context context) {
-
-        // TODO: Koll att event är fine, validera event, skapa class?
-
+    public DistributeSSORolesResponse handleRequest(Map<String, Object> event, Context context) {
         LOGGER.info("Got event " + event);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode details = objectMapper.valueToTree(event.getDetail());
-        if (event.getResources().size() != 1) {
-            throw new IllegalArgumentException("Resource array in json payload must contain exactly one element.");
-        } else if (event.getResources().get(0).contains("-TriggerMonthly-")) {
+        if (event.containsKey("eventName")) {
+            String eventName = event.get("eventName").toString();
+            if (eventName.equals("CreateRole")) {
+                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(event));
+            } else if (eventName.equals("DeleteRole")) {
+                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(event));
+            } else {
+                throw new IllegalArgumentException("\"eventName\" field must be CreateRole or DeleteRole.");
+            }
+        } else if (event.containsKey("resources") && event.get("resources").toString().contains("-TriggerMonthly-")) {
             return distributeSSORolesService.monthlyCleanup(iamFacade.listAllRoles());
         } else {
-            return handleEventTrigger(details);
+            throw new IllegalArgumentException("Illegal Event.");
         }
+
     }
 }
 

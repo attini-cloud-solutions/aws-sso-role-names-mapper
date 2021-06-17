@@ -20,7 +20,7 @@ public class BeanConfig {
     }
 
     @ApplicationScoped
-    public IamFacade iamService() {
+    public IamFacade iamFacade() {
         return new IamFacade(IamClient.builder().region(Region.AWS_GLOBAL).httpClient(UrlConnectionHttpClient.create()).build());
     }
 

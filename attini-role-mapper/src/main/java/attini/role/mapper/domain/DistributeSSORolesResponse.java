@@ -1,7 +1,5 @@
 package attini.role.mapper.domain;
 
-import com.sun.source.tree.Tree;
-import org.jboss.logging.annotations.Param;
 import software.amazon.awssdk.regions.Region;
 
 import java.util.*;
@@ -22,31 +20,31 @@ public class DistributeSSORolesResponse {
 
 
     public void addCreatedParameter(ParameterName parameterName, Region region) {
-        parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName());
+        parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.toString());
     }
 
     public void addDeletedParameter(ParameterName parameterName, Region region) {
-        parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName());
+        parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.toString());
     }
 
     public void addCreatedParameter(ParameterName parameterName, Set<Region> regions) {
-        regions.forEach(region -> parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName()));
+        regions.forEach(region -> parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.toString()));
     }
 
     public void addDeletedParameter(ParameterName parameterName, Set<Region> regions) {
-        regions.forEach(region -> parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName()));
+        regions.forEach(region -> parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.toString()));
     }
 
     public void addCreatedParameters(Set<ParameterName> parameterNames, Region region) {
         parametersCreated.putIfAbsent(region, new TreeSet<>(parameterNames.stream()
-                .map(ParameterName::getName)
+                .map(ParameterName::toString)
                 .collect(Collectors.toSet())));
     }
 
 
     public void addDeletedParameters(Set<ParameterName> parameterNames, Region region) {
         parametersDeleted.putIfAbsent(region, new TreeSet<>(parameterNames.stream()
-                .map(ParameterName::getName)
+                .map(ParameterName::toString)
                 .collect(Collectors.toSet())));
     }
 

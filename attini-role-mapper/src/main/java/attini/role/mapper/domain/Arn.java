@@ -13,7 +13,8 @@ public class Arn {
         return new Arn(value);
     }
 
-    public String getArn() {
+    @Override
+    public String toString() {
         return arn;
     }
 }
