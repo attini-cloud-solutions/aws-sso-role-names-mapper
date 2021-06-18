@@ -54,6 +54,7 @@ public class SsmFacade {
                 .getParametersByPathPaginator(requestBuilder.build());
         return iterable
                 .stream()
+                .parallel()
                 .map(GetParametersByPathResponse::parameters)
                 .flatMap(List::stream)
                 .map(Parameter::value)
@@ -77,10 +78,10 @@ public class SsmFacade {
             GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
 
             return iterable.stream()
+                    .parallel()
                     .map(GetParametersByPathResponse::parameters)
                     .flatMap(List::stream)
                     .collect(Collectors.toSet());
-
         } catch (SsmException e) {
             LOGGER.warn("Could not get parameters from region: " + region, e);
             return Collections.emptySet();

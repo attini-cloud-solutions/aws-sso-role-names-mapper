@@ -40,6 +40,7 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
 
     @Override
     public DistributeSSORolesResponse handleRequest(Map<String, Object> event, Context context) {
+        LOGGER.info("PROCESSORS: " + Runtime.getRuntime().availableProcessors());
         LOGGER.info("Got event " + event);
         if (event.containsKey("eventName")) {
             String eventName = event.get("eventName").toString();

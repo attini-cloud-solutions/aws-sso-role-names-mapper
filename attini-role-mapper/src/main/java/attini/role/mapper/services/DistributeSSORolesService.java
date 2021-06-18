@@ -73,7 +73,7 @@ public class DistributeSSORolesService {
 
     private Set<Region> createParameter(PermissionSetName permissionSetName, ParameterName parameterName, Arn arn) {
         Set<Region> regions = ssmFacade.getAllRegions();
-        return regions.stream()
+        return regions.parallelStream()
                 .map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
                 .filter(ssmFacade::putParameter)
                 .map(SsmPutParameterRequest::getRegion)
@@ -82,7 +82,7 @@ public class DistributeSSORolesService {
 
     private Set<Region> deleteParameter(ParameterName parameterName) {
         Set<Region> regions = ssmFacade.getAllRegions();
-        return regions.stream()
+        return regions.parallelStream()
                 .map(region -> SsmDeleteParameterRequest.create(region, parameterName))
                 .filter(ssmFacade::deleteParameter)
                 .map(SsmDeleteParameterRequest::getRegion)
@@ -90,7 +90,7 @@ public class DistributeSSORolesService {
     }
 
     private Set<ParameterName> createParametersForAllSSORoles(Set<Role> roles, Region region) {
-        return roles.stream()
+        return roles.parallelStream()
                 .map(role -> buildSsmPutParameterRequest(role, region))
                 .filter(ssmFacade::putParameter)
                 .map(SsmPutParameterRequest::getParameterName)

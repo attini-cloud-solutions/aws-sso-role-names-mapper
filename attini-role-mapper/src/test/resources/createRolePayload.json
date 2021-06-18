@@ -30,7 +30,7 @@
   "userAgent": "sso.amazonaws.com",
   "requestParameters": {
     "path": "/aws-reserved/sso.amazonaws.com/eu-west-1/",
-    "roleName": "AWSReservedSSO_test-latest3_58dcaf6a4cfad558",
+    "roleName": "AWSReservedSSO_test-parallel_58dcaf6a4cfad558",
     "assumeRolePolicyDocument": "{  \"Version\": \"2012-10-17\",  \"Statement\": {    \"Effect\": \"Allow\",    \"Action\": [      \"sts:AssumeRoleWithSAML\",      \"sts:TagSession\"    ],    \"Principal\": {\"Federated\": \"arn:aws:iam::855066048591:saml-provider/AWSSSO_3b5dd82fde6551ff_DO_NOT_DELETE\"},    \"Condition\": {\"StringEquals\": {\"SAML:aud\": \"https://signin.aws.amazon.com/saml\"}}  }}",
     "maxSessionDuration": 43200
   },
