@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +31,7 @@ class DistributeSSORolesServiceTest {
     private EnvironmentVariables environmentVariablesMock;
 
     private Set<Region> regions;
+
     @BeforeEach
     void setUp() {
         regions = new HashSet<>();

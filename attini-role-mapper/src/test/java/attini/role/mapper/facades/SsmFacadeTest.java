@@ -1,32 +1,26 @@
-
 package attini.role.mapper.facades;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.regions.Region.EU_NORTH_1;
-import static software.amazon.awssdk.regions.Region.EU_WEST_1;
-import static software.amazon.awssdk.regions.Region.EU_WEST_2;
-import static software.amazon.awssdk.regions.Region.US_EAST_1;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import attini.role.mapper.domain.*;
-import attini.role.mapper.facades.SsmFacade;
 import attini.role.mapper.factories.SsmClientFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.*;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.regions.Region.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SsmFacadeTest {
@@ -41,6 +35,10 @@ public class SsmFacadeTest {
 
     @Mock
     GetParametersByPathIterable getParametersByPathIterableMock;
+
+    private static Parameter toParam(String value) {
+        return Parameter.builder().value(value).build();
+    }
 
     @BeforeEach
     public void setup() {
@@ -64,7 +62,7 @@ public class SsmFacadeTest {
 
         Set<Region> regions = ssmFacade.getAllRegions();
 
-        assertEquals(3,regions.size());
+        assertEquals(3, regions.size());
         assertTrue(regions.containsAll(List.of(EU_WEST_1, US_EAST_1, EU_NORTH_1)));
         assertFalse(regions.contains(EU_WEST_2));
     }
@@ -122,9 +120,5 @@ public class SsmFacadeTest {
                 ParameterName.create("/attini/aws-sso-role-names-mapper/AdministratorAccess"),
                 PermissionSetName.create("AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad"),
                 Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_Billing_c8106817c1780052"))));
-    }
-
-    private static Parameter toParam(String value) {
-        return Parameter.builder().value(value).build();
     }
 }

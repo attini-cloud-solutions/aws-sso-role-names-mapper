@@ -12,10 +12,14 @@ public class SsmPutParameterRequest {
     private final Arn iamRoleArn;
 
     public SsmPutParameterRequest(Region region, ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
-        this.region = requireNonNull(region);
-        this.parameterName = requireNonNull(parameterName);
-        this.permissionSetName = requireNonNull(permissionSetName);
-        this.iamRoleArn = requireNonNull(arn);
+        this.region = requireNonNull(region, "region");
+        this.parameterName = requireNonNull(parameterName, "parameterName");
+        this.permissionSetName = requireNonNull(permissionSetName, "permissionSetName");
+        this.iamRoleArn = requireNonNull(arn, "arn");
+    }
+
+    public static SsmPutParameterRequest create(Region region, ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
+        return new SsmPutParameterRequest(region, parameterName, permissionSetName, arn);
     }
 
     public Region getRegion() {
@@ -32,11 +36,6 @@ public class SsmPutParameterRequest {
 
     public Arn getIamRoleArn() {
         return iamRoleArn;
-    }
-
-
-    public static SsmPutParameterRequest create(Region region, ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
-        return new SsmPutParameterRequest(region, parameterName, permissionSetName, arn);
     }
 
 }

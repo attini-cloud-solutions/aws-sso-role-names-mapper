@@ -20,9 +20,20 @@ public class DistributeSSORolesService {
     private final EnvironmentVariables environmentVariables;
 
     public DistributeSSORolesService(SsmFacade ssmFacade, EnvironmentVariables environmentVariables) {
-        // TODO: Gör såhär överallt
         this.ssmFacade = Objects.requireNonNull(ssmFacade, "ssmFacade");
         this.environmentVariables = Objects.requireNonNull(environmentVariables, "environmentVariables");
+    }
+
+    private static Set<Parameter> getParametersWithoutRole(Set<Role> roles, Set<Parameter> parameters) {
+        return parameters.stream()
+                .filter(parameter -> parameterHasNoRole(roles, parameter))
+                .collect(Collectors.toSet());
+    }
+
+    private static boolean parameterHasNoRole(Set<Role> iamRoles, Parameter parameter) {
+        return iamRoles.stream()
+                .map(Role::arn)
+                .noneMatch(arn -> arn.equals(parameter.value()));
     }
 
     public DistributeSSORolesResponse handleCreateRoleEvent(CreateRoleEvent createRoleEvent) {
@@ -99,22 +110,10 @@ public class DistributeSSORolesService {
         }
     }
 
-    private static Set<Parameter> getParametersWithoutRole(Set<Role> roles, Set<Parameter> parameters) {
-        return parameters.stream()
-                .filter(parameter -> parameterHasNoRole(roles, parameter))
-                .collect(Collectors.toSet());
-    }
-
     private SsmPutParameterRequest buildSsmPutParameterRequest(Role role, Region region) {
         Arn arn = Arn.create(role.arn());
         PermissionSetName permissionSetName = PermissionSetName.create(role.roleName());
         ParameterName parameterName = ParameterName.create(environmentVariables.getParameterStorePrefix(), permissionSetName);
         return SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn);
-    }
-
-    private static boolean parameterHasNoRole(Set<Role> iamRoles, Parameter parameter) {
-        return iamRoles.stream()
-                .map(Role::arn)
-                .noneMatch(arn -> arn.equals(parameter.value()));
     }
 }

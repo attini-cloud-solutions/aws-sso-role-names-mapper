@@ -2,7 +2,9 @@ package attini.role.mapper.domain;
 
 import software.amazon.awssdk.regions.Region;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class DistributeSSORolesResponse {
@@ -40,7 +42,6 @@ public class DistributeSSORolesResponse {
                 .map(ParameterName::toString)
                 .collect(Collectors.toSet())));
     }
-
 
     public void addDeletedParameters(Set<ParameterName> parameterNames, Region region) {
         parametersDeleted.putIfAbsent(region, new TreeSet<>(parameterNames.stream()

@@ -9,8 +9,12 @@ public class SsmDeleteParameterRequest {
     private final ParameterName parameterName;
 
     public SsmDeleteParameterRequest(Region region, ParameterName parameterName) {
-        this.region = requireNonNull(region);
-        this.parameterName = requireNonNull(parameterName);
+        this.region = requireNonNull(region, "region");
+        this.parameterName = requireNonNull(parameterName, "parameterName");
+    }
+
+    public static SsmDeleteParameterRequest create(Region region, ParameterName parameterName) {
+        return new SsmDeleteParameterRequest(region, parameterName);
     }
 
     public Region getRegion() {
@@ -19,9 +23,5 @@ public class SsmDeleteParameterRequest {
 
     public ParameterName getParameterName() {
         return parameterName;
-    }
-
-    public static SsmDeleteParameterRequest create(Region region, ParameterName parameterName) {
-        return new SsmDeleteParameterRequest(region, parameterName);
     }
 }

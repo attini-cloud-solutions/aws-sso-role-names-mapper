@@ -1,27 +1,20 @@
 package attini.role.mapper.facades;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.pagination.sync.SdkIterable;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListRolesRequest;
 import software.amazon.awssdk.services.iam.model.ListRolesResponse;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iam.paginators.ListRolesIterable;
-import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
-import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
-import software.amazon.awssdk.services.ssm.model.Parameter;
 
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 

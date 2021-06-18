@@ -1,12 +1,5 @@
 package attini.role.mapper.facades;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import attini.role.mapper.domain.*;
 import attini.role.mapper.factories.SsmClientFactory;
 import org.jboss.logging.Logger;
@@ -16,6 +9,8 @@ import software.amazon.awssdk.services.ssm.model.*;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
 
 import javax.inject.Inject;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SsmFacade {
 
@@ -25,11 +20,27 @@ public class SsmFacade {
 
     @Inject
     public SsmFacade(SsmClientFactory ssmClientFactory) {
-        this.ssmClientFactory = ssmClientFactory;
+        this.ssmClientFactory = Objects.requireNonNull(ssmClientFactory, "ssmClientFactory");
+    }
+
+    private static DeleteParameterRequest getDeleteParameterRequest(ParameterName parameterName) {
+        return DeleteParameterRequest.builder().name(parameterName.toString()).build();
+    }
+
+    private static PutParameterRequest getCreateParameterRequest(ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
+        return PutParameterRequest.builder()
+                .type(ParameterType.STRING)
+                .name(parameterName.toString())
+                .description("Role arn for AWS SSO PermissionSet " + permissionSetName.toString())
+                .value(arn.toString())
+                .overwrite(true)
+                .tier(ParameterTier.STANDARD)
+                .build();
     }
 
     /**
      * Ignores CN/gov regions.
+     *
      * @return all regions from /aws/service/global-infrastructure/regions.
      */
     public Set<Region> getAllRegions() {
@@ -76,7 +87,6 @@ public class SsmFacade {
         }
     }
 
-
     /**
      * @return true if successfully deleted parameters in region, false otherwise.
      */
@@ -96,7 +106,6 @@ public class SsmFacade {
             return false;
         }
     }
-
 
     /**
      * @return true if successfully deleted parameter in region, false otherwise.
@@ -127,20 +136,5 @@ public class SsmFacade {
             LOGGER.warn("Could not create parameter: " + ssmPutParameterRequest.getParameterName().toString() + " in region: " + ssmPutParameterRequest.getRegion(), e);
             return false;
         }
-    }
-
-    private static DeleteParameterRequest getDeleteParameterRequest(ParameterName parameterName) {
-        return DeleteParameterRequest.builder().name(parameterName.toString()).build();
-    }
-
-    private static PutParameterRequest getCreateParameterRequest(ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
-        return PutParameterRequest.builder()
-                .type(ParameterType.STRING)
-                .name(parameterName.toString())
-                .description("Role arn for AWS SSO PermissionSet " + permissionSetName.toString())
-                .value(arn.toString())
-                .overwrite(true)
-                .tier(ParameterTier.STANDARD)
-                .build();
     }
 }

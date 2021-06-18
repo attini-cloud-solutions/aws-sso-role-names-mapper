@@ -1,10 +1,12 @@
 package attini.role.mapper;
 
-import attini.role.mapper.domain.*;
+import attini.role.mapper.domain.CreateRoleEvent;
+import attini.role.mapper.domain.DeleteRoleEvent;
+import attini.role.mapper.domain.DistributeSSORolesResponse;
 import attini.role.mapper.domain.exceptions.InvalidEventPayloadException;
 import attini.role.mapper.facades.EnvironmentVariables;
-import attini.role.mapper.services.DistributeSSORolesService;
 import attini.role.mapper.facades.IamFacade;
+import attini.role.mapper.services.DistributeSSORolesService;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.jboss.logging.Logger;
@@ -31,9 +33,9 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
 
     @Inject
     public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, IamFacade iamFacade, EnvironmentVariables environmentVariables) {
-        this.distributeSSORolesService = Objects.requireNonNull(distributeSSORolesService);
-        this.iamFacade = Objects.requireNonNull(iamFacade);
-        this.environmentVariables = environmentVariables;
+        this.distributeSSORolesService = Objects.requireNonNull(distributeSSORolesService, "distributeSSORolesService");
+        this.iamFacade = Objects.requireNonNull(iamFacade, "iamFacade");
+        this.environmentVariables = Objects.requireNonNull(environmentVariables, "environmentVariables");
     }
 
     @Override

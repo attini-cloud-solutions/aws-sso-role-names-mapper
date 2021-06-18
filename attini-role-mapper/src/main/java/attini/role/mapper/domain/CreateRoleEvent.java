@@ -30,7 +30,7 @@ public class CreateRoleEvent {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode eventPayloadJson = objectMapper.valueToTree(eventPayload);
-            if (!eventPayloadJson.get("eventName").asText().equals("CreateRole")){
+            if (!eventPayloadJson.get("eventName").asText().equals("CreateRole")) {
                 throw new WrongEventTypeException("\"eventName\" field must be CreateRole.");
             }
             RoleName roleName = RoleName.create(eventPayloadJson.get("responseElements").get("role").get("roleName").asText());
@@ -41,11 +41,9 @@ public class CreateRoleEvent {
             ParameterName parameterName = ParameterName.create(environmentVariables.getParameterStorePrefix(),
                     PermissionSetName.create(roleName.toString()));
             return new CreateRoleEvent(roleName, arn, parameterName);
-        }
-        catch (WrongEventTypeException e) {
+        } catch (WrongEventTypeException e) {
             throw e;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new InvalidEventPayloadException(e);
         }
     }

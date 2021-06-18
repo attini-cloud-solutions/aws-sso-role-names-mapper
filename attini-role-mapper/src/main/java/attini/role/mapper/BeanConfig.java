@@ -1,15 +1,15 @@
 package attini.role.mapper;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import attini.role.mapper.facades.EnvironmentVariables;
-import attini.role.mapper.factories.SsmClientFactory;
-import attini.role.mapper.services.DistributeSSORolesService;
 import attini.role.mapper.facades.IamFacade;
 import attini.role.mapper.facades.SsmFacade;
+import attini.role.mapper.factories.SsmClientFactory;
+import attini.role.mapper.services.DistributeSSORolesService;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
+
+import javax.enterprise.context.ApplicationScoped;
 
 
 @ApplicationScoped
