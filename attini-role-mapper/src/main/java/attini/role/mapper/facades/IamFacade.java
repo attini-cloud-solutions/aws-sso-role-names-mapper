@@ -1,12 +1,13 @@
 package attini.role.mapper.facades;
 
-
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListRolesRequest;
+import software.amazon.awssdk.services.iam.model.ListRolesResponse;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iam.paginators.ListRolesIterable;
 
@@ -23,9 +24,10 @@ public class IamFacade {
     // Inte super viktigt då den inte gör så mycket men helt plötsligt kommer det en klåfingrig utvecklare som inte fattar hur paginering fungerar och har sönder allt
     public Set<Role> listAllRoles() {
         ListRolesIterable listRolesResponses = iamClient.listRolesPaginator(ListRolesRequest.builder().pathPrefix("/aws-reserved/sso.amazonaws.com/").build());
-        return listRolesResponses
-                .roles()
-                .stream()
+
+        return listRolesResponses.stream()
+                .map(ListRolesResponse::roles)
+                .flatMap(List::stream)
                 .collect(Collectors.toSet());
     }
 }

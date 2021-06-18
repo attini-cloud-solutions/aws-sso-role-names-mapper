@@ -8,13 +8,14 @@ public class SsmPutParameterRequest {
     private final Region region;
     private final ParameterName parameterName;
     private final PermissionSetName permissionSetName;
-    private final Arn arn; //TODO Arn kan betyda många olika saker i AWS så ett något tydligare namn skulle kunna vara bra på fältet
+    // The value of a parameter
+    private final Arn iamRoleArn;
 
     public SsmPutParameterRequest(Region region, ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
         this.region = requireNonNull(region);
         this.parameterName = requireNonNull(parameterName);
         this.permissionSetName = requireNonNull(permissionSetName);
-        this.arn = requireNonNull(arn);
+        this.iamRoleArn = requireNonNull(arn);
     }
 
     public Region getRegion() {
@@ -29,8 +30,8 @@ public class SsmPutParameterRequest {
         return permissionSetName;
     }
 
-    public Arn getArn() {
-        return arn;
+    public Arn getIamRoleArn() {
+        return iamRoleArn;
     }
 
 

@@ -1,14 +1,15 @@
 package attini.role.mapper.domain;
 
-import attini.role.mapper.domain.Arn;
-import attini.role.mapper.domain.CreateRoleEvent;
-import attini.role.mapper.domain.RoleName;
 import attini.role.mapper.domain.exceptions.InvalidEventPayloadException;
 import attini.role.mapper.domain.exceptions.WrongEventTypeException;
+import attini.role.mapper.facades.EnvironmentVariables;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
@@ -16,46 +17,55 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked") //TODO, unchecked casts är dålig praxis och kompilatorn kommer varna.
-// Inget problem då detta endast är tester men ni kan be kompilatorn ignorera dessa med annotationen ovan.
-// Den kan sättas på metoder eller hela klasser. Bör användas sparsamt.
+@SuppressWarnings("unchecked")
 public class CreateRoleEventTest {
 
     ObjectMapper mapper = new ObjectMapper();
+    EnvironmentVariables environmentVariablesMock;
+
+    public CreateRoleEventTest() {
+        environmentVariablesMock = mock(EnvironmentVariables.class);
+        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn("/test/");
+    }
 
     @Test
-    public void create_CorrectJson_ShouldPass() throws IOException {
+    public void create_CorrectJson() throws IOException {
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/createRolePayload.json").toFile(), Map.class);
-        CreateRoleEvent actualCreateRoleEvent = CreateRoleEvent.create(event);
+        CreateRoleEvent actualCreateRoleEvent = CreateRoleEvent.create(environmentVariablesMock, event);
+
+        RoleName roleName = RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558");
 
         CreateRoleEvent expectedCreateRoleEvent = CreateRoleEvent.create(
-                RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558"),
-                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest3_58dcaf6a4cfad558"));
+                roleName,
+                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest3_58dcaf6a4cfad558"),
+                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(), PermissionSetName.create(roleName.toString())));
         assertEquals(expectedCreateRoleEvent.getRoleName().toString(), actualCreateRoleEvent.getRoleName().toString());
-        assertEquals(expectedCreateRoleEvent.getArn().toString(), actualCreateRoleEvent.getArn().toString());
+        assertEquals(expectedCreateRoleEvent.getIamRoleName().toString(), actualCreateRoleEvent.getIamRoleName().toString());
 
     }
 
     @Test
     public void create_WrongEventType_ShouldThrow() throws IOException {
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/deleteRolePayload.json").toFile(), Map.class);
-        assertThrows(WrongEventTypeException.class, () -> CreateRoleEvent.create(event));
+        assertThrows(WrongEventTypeException.class, () -> CreateRoleEvent.create(environmentVariablesMock, event));
 
     }
 
     @Test
     public void create_BadRoleName_ShouldThrow() throws IOException {
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/createRoleBadRoleNamePayload.json").toFile(), Map.class);
-        assertThrows(InvalidEventPayloadException.class, () -> CreateRoleEvent.create(event));
+        assertThrows(InvalidEventPayloadException.class, () -> CreateRoleEvent.create(environmentVariablesMock, event));
 
     }
 
     @Test
     public void create_MissingResponseElements_ShouldThrow() throws IOException {
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/createRoleMissingResponseElementsPayload.json").toFile(), Map.class);
-        assertThrows(InvalidEventPayloadException.class, () -> CreateRoleEvent.create(event));
+        assertThrows(InvalidEventPayloadException.class, () -> CreateRoleEvent.create(environmentVariablesMock, event));
 
     }
 }

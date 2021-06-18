@@ -1,6 +1,7 @@
 package attini.role.mapper.services;
 
 import attini.role.mapper.domain.*;
+import attini.role.mapper.facades.EnvironmentVariables;
 import attini.role.mapper.facades.SsmFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ class DistributeSSORolesServiceTest {
     @Mock
     private SsmFacade ssmFacadeMock;
 
+    @Mock
+    private EnvironmentVariables environmentVariablesMock;
+
     private Set<Region> regions;
     @BeforeEach
     void setUp() {
@@ -34,17 +38,19 @@ class DistributeSSORolesServiceTest {
         regions.add(Region.US_EAST_1);
         regions.add(Region.EU_NORTH_1);
         when(ssmFacadeMock.getAllRegions()).thenReturn(regions);
-        distributeSSORolesService = new DistributeSSORolesService(ssmFacadeMock);
+        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn("/test/");
+        distributeSSORolesService = new DistributeSSORolesService(ssmFacadeMock, environmentVariablesMock);
     }
 
 
     @Test
     void handleMonthlyEvent_AllRolesHaveParameters_ShouldPass() {
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
-        ParameterName database = ParameterName.create("/attini/aws-sso-role-names-mapper/DatabaseAdministrator");
-        ParameterName billing = ParameterName.create("/attini/aws-sso-role-names-mapper/Billing");
-        ParameterName admin = ParameterName.create("/attini/aws-sso-role-names-mapper/AdministratorAccess");
-        ParameterName toBeDeleted = ParameterName.create("/attini/aws-sso-role-names-mapper/ToBeDeleted");
+        String prefix = environmentVariablesMock.getParameterStorePrefix();
+        ParameterName database = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad"));
+        ParameterName billing = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_Billing_c8106817c1780052"));
+        ParameterName admin = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_AdministratorAccess_f627296b4ac7ac6c"));
+        ParameterName toBeDeleted = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_DeleteMePlease_f627296b4ac7ac6c"));
 
         Parameter databaseParameter = Parameter.builder()
                 .name(database.toString())
@@ -63,7 +69,7 @@ class DistributeSSORolesServiceTest {
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_DeleteMePlease_f627296b4ac7ac6c")
                 .build();
 
-        Set<Parameter> parameters = new HashSet<Parameter>(); //TODO Explicit typ behövs inte på höger sida sen java 8
+        Set<Parameter> parameters = new HashSet<>();
         parameters.add(databaseParameter);
         parameters.add(billingParameter);
         parameters.add(adminParameter);
@@ -113,9 +119,12 @@ class DistributeSSORolesServiceTest {
     void handleCreateRoleEvent_ValidCreateRoleEvent_ShouldPass() {
 
         when(ssmFacadeMock.putParameter(any(SsmPutParameterRequest.class))).thenReturn(true);
+
+        RoleName roleName = RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558");
         CreateRoleEvent createRoleEvent = CreateRoleEvent.create(
-                RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558"),
-                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest3_58dcaf6a4cfad558"));
+                roleName,
+                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest3_58dcaf6a4cfad558"),
+                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(), PermissionSetName.create(roleName.toString())));
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
 
         expectedResponse.addCreatedParameter(createRoleEvent.getParameterName(), this.regions);
@@ -134,8 +143,12 @@ class DistributeSSORolesServiceTest {
     void handleDeleteRoleEvent_ValidDeleteRoleEvent_ShouldPass() {
 
         when(ssmFacadeMock.deleteParameter(any(SsmDeleteParameterRequest.class))).thenReturn(true);
+
+        RoleName roleName = RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558");
         DeleteRoleEvent deleteRoleEvent = DeleteRoleEvent.create(
-                RoleName.create("AWSReservedSSO_test-latest3_58dcaf6a4cfad558"));
+                roleName,
+                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(),
+                        PermissionSetName.create(roleName.toString())));
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
 
         expectedResponse.addDeletedParameter(deleteRoleEvent.getParameterName(), this.regions);

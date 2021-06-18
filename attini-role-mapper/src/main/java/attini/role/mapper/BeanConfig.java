@@ -2,6 +2,7 @@ package attini.role.mapper;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import attini.role.mapper.facades.EnvironmentVariables;
 import attini.role.mapper.factories.SsmClientFactory;
 import attini.role.mapper.services.DistributeSSORolesService;
 import attini.role.mapper.facades.IamFacade;
@@ -16,7 +17,12 @@ public class BeanConfig {
 
     @ApplicationScoped
     public DistributeSSORolesService distributeSSORolesService() {
-        return new DistributeSSORolesService(ssmService());
+        return new DistributeSSORolesService(ssmService(), environmentVariables());
+    }
+
+    @ApplicationScoped
+    public EnvironmentVariables environmentVariables() {
+        return new EnvironmentVariables();
     }
 
     @ApplicationScoped

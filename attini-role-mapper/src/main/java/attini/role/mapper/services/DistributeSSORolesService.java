@@ -1,16 +1,15 @@
 package attini.role.mapper.services;
 
 import attini.role.mapper.domain.*;
+import attini.role.mapper.facades.EnvironmentVariables;
 import attini.role.mapper.facades.SsmFacade;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.jboss.logging.Logger;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 
-import javax.inject.Inject;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,13 +17,12 @@ public class DistributeSSORolesService {
 
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesService.class);
     private final SsmFacade ssmFacade;
-    private final Set<Region> regions;
+    private final EnvironmentVariables environmentVariables;
 
-    @Inject //TODO ni behöver ingen annotation här då ni skapar den i er BeanConfig
-    public DistributeSSORolesService(SsmFacade ssmFacade) {
-        this.ssmFacade = ssmFacade;
-        this.regions = ssmFacade.getAllRegions(); //TODO kalla inte på en service i konstruktorn här.
-        // Det gör servicen stateful och kan inte återanvändas säkert ifall regioner skulle ha förändrats
+    public DistributeSSORolesService(SsmFacade ssmFacade, EnvironmentVariables environmentVariables) {
+        // TODO: Gör såhär överallt
+        this.ssmFacade = Objects.requireNonNull(ssmFacade, "ssmFacade");
+        this.environmentVariables = Objects.requireNonNull(environmentVariables, "environmentVariables");
     }
 
     public DistributeSSORolesResponse handleCreateRoleEvent(CreateRoleEvent createRoleEvent) {
@@ -33,7 +31,7 @@ public class DistributeSSORolesService {
                 createParameter(
                         createRoleEvent.getPermissionSetName(),
                         createRoleEvent.getParameterName(),
-                        createRoleEvent.getArn()));
+                        createRoleEvent.getIamRoleName()));
         return distributeSSORolesResponse;
     }
 
@@ -62,8 +60,8 @@ public class DistributeSSORolesService {
         return distributeSSORolesResponse;
     }
 
-
     private Set<Region> createParameter(PermissionSetName permissionSetName, ParameterName parameterName, Arn arn) {
+        Set<Region> regions = ssmFacade.getAllRegions();
         return regions.stream()
                 .map(region -> SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn))
                 .filter(ssmFacade::putParameter)
@@ -72,6 +70,7 @@ public class DistributeSSORolesService {
     }
 
     private Set<Region> deleteParameter(ParameterName parameterName) {
+        Set<Region> regions = ssmFacade.getAllRegions();
         return regions.stream()
                 .map(region -> SsmDeleteParameterRequest.create(region, parameterName))
                 .filter(ssmFacade::deleteParameter)
@@ -100,24 +99,20 @@ public class DistributeSSORolesService {
         }
     }
 
-
-    //TODO kan vara static den inte använder sig av nån data från det instansierade objektet
-    private Set<Parameter> getParametersWithoutRole(Set<Role> roles, Set<Parameter> parameters) {
+    private static Set<Parameter> getParametersWithoutRole(Set<Role> roles, Set<Parameter> parameters) {
         return parameters.stream()
                 .filter(parameter -> parameterHasNoRole(roles, parameter))
                 .collect(Collectors.toSet());
     }
 
-    //TODO kan vara static den inte använder sig av nån data från det instansierade objektet
     private SsmPutParameterRequest buildSsmPutParameterRequest(Role role, Region region) {
         Arn arn = Arn.create(role.arn());
         PermissionSetName permissionSetName = PermissionSetName.create(role.roleName());
-        ParameterName parameterName = ParameterName.create(permissionSetName);
+        ParameterName parameterName = ParameterName.create(environmentVariables.getParameterStorePrefix(), permissionSetName);
         return SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn);
     }
 
-    //TODO kan vara static den inte använder sig av nån data från det instansierade objektet
-    private boolean parameterHasNoRole(Set<Role> iamRoles, Parameter parameter) {
+    private static boolean parameterHasNoRole(Set<Role> iamRoles, Parameter parameter) {
         return iamRoles.stream()
                 .map(Role::arn)
                 .noneMatch(arn -> arn.equals(parameter.value()));

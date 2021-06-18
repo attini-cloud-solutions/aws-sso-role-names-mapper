@@ -9,8 +9,7 @@ public class SsmClientFactory {
         return SsmClient.builder().region(region).httpClient(UrlConnectionHttpClient.create()).build();
     }
 
-    //TODO kommer denna hämta globalt eller kommer den ta default regionen från nuvarande profil?
     public SsmClient createGlobalSsmClient() {
-        return SsmClient.builder().httpClient(UrlConnectionHttpClient.create()).build();
+        return SsmClient.builder().region(Region.US_EAST_1).httpClient(UrlConnectionHttpClient.create()).build();
     }
 }

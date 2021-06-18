@@ -47,8 +47,8 @@ public class SsmFacadeTest {
         ssmFacade = new SsmFacade(ssmClientFactoryMock);
     }
 
-    @Test //TODO snyggt med alla tester, men shouldPass känns något redundant då alla tester borde passera :)
-    public void getAllRegions_ValidAPIResponse_ShouldPass() {
+    @Test
+    public void getAllRegions_ValidAPIResponse() {
         when(ssmClientFactoryMock.createGlobalSsmClient()).thenReturn(ssmClientMock);
         when(ssmClientMock.getParametersByPathPaginator(any(GetParametersByPathRequest.class)))
                 .thenReturn(getParametersByPathIterableMock);
@@ -80,23 +80,44 @@ public class SsmFacadeTest {
         assertTrue(ssmFacade.getParameters(Region.AP_NORTHEAST_3).isEmpty());
     }
 
-    // TODO: Testa också när dom returnerar True.
     @Test
     public void deleteParameters_SsmError_ShouldReturnFalse() {
         when(ssmClientFactoryMock.createSsmClient(any(Region.class))).thenReturn(ssmClientMock);
-        when(ssmClientMock.deleteParameters(any(DeleteParametersRequest.class))).thenThrow(SsmException.builder().build());
+        when(ssmClientMock.deleteParameters(any(DeleteParametersRequest.class))).thenThrow(SsmException.class);
 
         // Irrelevant what Region or Set is used.
         assertFalse(ssmFacade.deleteParameters(SsmDeleteParametersRequest.create(Region.EU_WEST_3, new HashSet<>())));
     }
 
     @Test
+    public void deleteParameters_SsmError_ShouldReturnTrue() {
+        when(ssmClientFactoryMock.createSsmClient(any(Region.class))).thenReturn(ssmClientMock);
+        when(ssmClientMock.deleteParameters(any(DeleteParametersRequest.class))).thenReturn(DeleteParametersResponse.builder().build());
+
+        // Irrelevant what Region or Set is used.
+        assertTrue(ssmFacade.deleteParameters(SsmDeleteParametersRequest.create(Region.EU_WEST_3, new HashSet<>())));
+    }
+
+    @Test
     public void putParameters_SsmError_ShouldReturnFalse() {
         when(ssmClientFactoryMock.createSsmClient(any(Region.class))).thenReturn(ssmClientMock);
-        when(ssmClientMock.putParameter(any(PutParameterRequest.class))).thenThrow(SsmException.builder().build());
+        when(ssmClientMock.putParameter(any(PutParameterRequest.class))).thenThrow(SsmException.class);
 
         // Irrelevant what arguments are used.
         assertFalse(ssmFacade.putParameter(SsmPutParameterRequest.create(
+                Region.EU_NORTH_1,
+                ParameterName.create("/attini/aws-sso-role-names-mapper/AdministratorAccess"),
+                PermissionSetName.create("AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad"),
+                Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_Billing_c8106817c1780052"))));
+    }
+
+    @Test
+    public void putParameters_SsmError_ShouldReturnTrue() {
+        when(ssmClientFactoryMock.createSsmClient(any(Region.class))).thenReturn(ssmClientMock);
+        when(ssmClientMock.putParameter(any(PutParameterRequest.class))).thenReturn(PutParameterResponse.builder().build());
+
+        // Irrelevant what arguments are used.
+        assertTrue(ssmFacade.putParameter(SsmPutParameterRequest.create(
                 Region.EU_NORTH_1,
                 ParameterName.create("/attini/aws-sso-role-names-mapper/AdministratorAccess"),
                 PermissionSetName.create("AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad"),

@@ -2,6 +2,8 @@
 
 Fixa git repo mappen
 
+Default Parameter Store prefix is "/attini/aws-sso-role-names-mapper/", to change this you must change it in the cf-template.
+
 
 
 * Hur man bygger

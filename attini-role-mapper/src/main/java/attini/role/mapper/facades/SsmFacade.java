@@ -1,8 +1,10 @@
 package attini.role.mapper.facades;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import attini.role.mapper.domain.*;
@@ -31,7 +33,11 @@ public class SsmFacade {
      * @return all regions from /aws/service/global-infrastructure/regions.
      */
     public Set<Region> getAllRegions() {
-        GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions"); // /aws/service/global-infrastructure/services/ssm/regions
+        // Will exclude regions containing substring in the set.
+        Set<String> prefixes = new HashSet<>();
+        prefixes.add("-gov-");
+        prefixes.add("cn-");
+        GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions");
         GetParametersByPathIterable iterable = ssmClientFactory
                 .createGlobalSsmClient()
                 .getParametersByPathPaginator(requestBuilder.build());
@@ -39,10 +45,14 @@ public class SsmFacade {
                 .stream()
                 .map(GetParametersByPathResponse::parameters)
                 .flatMap(List::stream)
-                .filter(parameter -> !parameter.value().contains("-gov-") && !parameter.value().contains("cn-")) //TODO kanske bryta ut till en metod med en förklaring varför dom exkluderas?
                 .map(Parameter::value)
+                .filter(value -> validParameter(value, prefixes))
                 .map(Region::of)
                 .collect(Collectors.toSet());
+    }
+
+    private Boolean validParameter(String parameter, Set<String> prefixes) {
+        return prefixes.stream().noneMatch(parameter::contains);
     }
 
     /**
@@ -108,7 +118,7 @@ public class SsmFacade {
      */
     public boolean putParameter(SsmPutParameterRequest ssmPutParameterRequest) {
         try {
-            PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName(), ssmPutParameterRequest.getArn());
+            PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName(), ssmPutParameterRequest.getIamRoleArn());
             SsmClient client = ssmClientFactory.createSsmClient(ssmPutParameterRequest.getRegion());
             client.putParameter(putParameterRequest);
             LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().toString() + " in region: " + ssmPutParameterRequest.getRegion());

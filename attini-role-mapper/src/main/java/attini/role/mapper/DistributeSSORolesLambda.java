@@ -2,6 +2,7 @@ package attini.role.mapper;
 
 import attini.role.mapper.domain.*;
 import attini.role.mapper.domain.exceptions.InvalidEventPayloadException;
+import attini.role.mapper.facades.EnvironmentVariables;
 import attini.role.mapper.services.DistributeSSORolesService;
 import attini.role.mapper.facades.IamFacade;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -11,6 +12,7 @@ import org.jboss.logging.Logger;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.Map;
+import java.util.Objects;
 
 // Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
 
@@ -25,11 +27,13 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
     private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesLambda.class);
     private final DistributeSSORolesService distributeSSORolesService;
     private final IamFacade iamFacade;
+    private final EnvironmentVariables environmentVariables;
 
     @Inject
-    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, IamFacade iamFacade) {
-        this.distributeSSORolesService = distributeSSORolesService; //TODO null check
-        this.iamFacade = iamFacade; //TODO null check
+    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, IamFacade iamFacade, EnvironmentVariables environmentVariables) {
+        this.distributeSSORolesService = Objects.requireNonNull(distributeSSORolesService);
+        this.iamFacade = Objects.requireNonNull(iamFacade);
+        this.environmentVariables = environmentVariables;
     }
 
     @Override
@@ -38,9 +42,9 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
         if (event.containsKey("eventName")) {
             String eventName = event.get("eventName").toString();
             if (eventName.equals("CreateRole")) {
-                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(event));
+                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(environmentVariables, event));
             } else if (eventName.equals("DeleteRole")) {
-                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(event));
+                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(environmentVariables, event));
             } else {
                 throw new InvalidEventPayloadException("\"eventName\" field must be CreateRole or DeleteRole.");
             }
