@@ -24,7 +24,7 @@ hs_err_pid*
 
 .idea
 .classpath
-attini-role-mapper/target
+target/
 .aws-sam
 .gradle
 .project
