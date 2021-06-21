@@ -7,7 +7,12 @@ Parameters:
   ParameterStorePrefix:
     Type: String
     Description: Prefix for the parameters in parameter store
-    Default: /attini/aws-sso-role-names-mapper/
+  S3Bucket:
+    Type: String
+    Description: Name of S3 bucket containing packaged code
+  S3BucketKey:
+    Type: String
+    Description: Packaged code
 
 Resources:
   TriggerMonthly:
@@ -16,8 +21,8 @@ Resources:
       Description: Triggers on the creation of an SSO PermissionSet role
       ScheduleExpression: cron(0 0 1 * ? *)
       Targets:
-        - Arn: !GetAtt DistributeSSORoleArns.Arn
-          Id: DistributeSSORoleArns
+        - Arn: !GetAtt DistributeSSORoles.Arn
+          Id: DistributeSSORoles
   TriggerOnEvent:
     Type: AWS::Events::Rule
     Properties:
@@ -44,32 +49,34 @@ Resources:
           }
         }
       Targets:
-        - Arn: !GetAtt DistributeSSORoleArns.Arn
-          Id: DistributeSSORoleArns
+        - Arn: !GetAtt DistributeSSORoles.Arn
+          Id: DistributeSSORoles
 
 
   TriggerLambda:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt DistributeSSORoleArns.Arn
+      FunctionName: !GetAtt DistributeSSORoles.Arn
       Principal: events.amazonaws.com
 
 
-  DistributeSSORoleArnsLogGroup:
+  DistributeSSORolesLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub
         - /aws/lambda/${LambdaName}
-        - { LambdaName: !Ref DistributeSSORoleArns }
+        - { LambdaName: !Ref DistributeSSORoles }
       RetentionInDays: 90
 
-  DistributeSSORoleArns:
+  DistributeSSORoles:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Zip
-      CodeUri: s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
-      Description: This lambda will put SSO Permission set role arns into SSM Parameter stor in all avalibe regions
+      CodeUri:
+        Bucket: !Ref S3Bucket
+        Key: !Ref S3BucketKey
+      Description: This lambda will put SSO Permission set role arns into SSM Parameter stor in all available regions
       Handler: not.used.in.provided.runtime
       MemorySize: 512
       Runtime: provided

@@ -52,6 +52,7 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
                 throw new InvalidEventPayloadException("\"eventName\" field must be CreateRole or DeleteRole.");
             }
         } else if (event.containsKey("resources") && event.get("resources").toString().contains("-TriggerMonthly-")) {
+            // TODO: Byt namn på Monthly till Scheduled, gör environment variabel som den andra
             return distributeSSORolesService.handleMonthlyEvent(iamFacade.listAllRoles());
         } else {
             throw new InvalidEventPayloadException();

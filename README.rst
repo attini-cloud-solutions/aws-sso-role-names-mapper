@@ -14,8 +14,6 @@ The Solution
 |
 | IAM Role Name: "*AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad*"
 | Name stored in Parameter Store: "*DatabaseAdministrator*"
-|
-
 
 Prerequisites
 =============
@@ -26,51 +24,23 @@ Prerequisites
 - For native compilation, see `this guide <https://quarkus.io/guides/building-native-image#configuring-graalvm>`_
 - `Maven <https://maven.apache.org/install.html>`_ for installing project dependencies.
 
-| 
 
 Build
 =============
 
-1. Clone this repository into a folder of choice.
-2. Run mvn package (add flag -Pnative for GraalVM native compilation)
-   1. f
-3. 
+1. Clone this repository into a folder of choice
+2. Run :code:`mvn clean package`
+   
+   - [:code:`-Pnative`] For native compilation
+   - [:code:`-Dquarkus.native.container-build=true`] to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
+3. For local testing, run :code:`mvn clean package && sam local invoke -t target/sam.jvm.yaml -e payload.json`
 
-
-
-
-
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-|
-| Default Parameter Store path is */attini/aws-sso-role-names-mapper/*, 
-| this can easily be changed by setting environment varible *ParameterStorePrefix*. 
-
-
-
-
-
-- Hur man bygger
-- Hur man deployar
-
-Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
-
-aws s3 cp target/function.zip s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip aws
-cloudformation delete-stack --stack-name joel-test aws cloudformation deploy --template cf-template.yaml --stack-name
-joel-test --capabilites CAPABILITY_IAM
-
-mvn clean package && sam local invoke -t target/sam.jvm.yaml -e payload.json
+Deploy
+=============
+1. Clone this repository into a folder of choice
+2. Create a bucket to store zipped code (:code:`aws s3 mb s3://mybucket --region us-east-1`)
+3. Set stackName, parameterStorePrefix, s3Bucket and s3BucketKey in pom.xml (Region should be us-east-1)
+4. Run :code:`mvn deploy`
+   
+   - [:code:`-Pnative`] For native compilation
+   - [:code:`-Dquarkus.native.container-build=true`] to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)

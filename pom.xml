@@ -18,6 +18,14 @@
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>1.13.6.Final</quarkus.platform.version>
         <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+        <!-- mvn deploy setup -->
+        <awsRegion>us-east-1</awsRegion>
+        <stackName>some-stack-name</stackName>
+        <parameterStorePrefix>joel-parameter-test</parameterStorePrefix>
+        <!-- Example for bucket: s3://attini/aws-sso-role-names-mapper/function.zip -->
+        <s3Bucket>attini</s3Bucket>
+        <s3BucketKey>sso-role-names-mapper/function.zip</s3BucketKey>
+        <!-- mvn deploy setup -->
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -31,21 +39,6 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk -->
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-            <version>1.12.1</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/core -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>core</artifactId>
-            <version>2.16.80</version>
-            <type>pom</type>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/ssm -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -58,12 +51,10 @@
             <artifactId>iam</artifactId>
             <version>2.16.83</version>
         </dependency>
-
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>url-connection-client</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -111,6 +102,49 @@
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>s3-upload</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>aws</executable>
+                            <arguments>
+                                <argument>s3</argument>
+                                <argument>cp</argument>
+                                <argument>target/function.zip</argument>
+                                <argument>s3://${s3Bucket}/${s3BucketKey}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>sam-deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>aws</executable>
+                            <commandlineArgs>
+                                cloudformation deploy --template-file=cf-template.yaml --stack-name=${stackName} --region=${awsRegion} --capabilities=CAPABILITY_IAM --parameter-overrides S3Bucket=${s3Bucket} S3BucketKey=${s3BucketKey} ParameterStorePrefix=${parameterStorePrefix}
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
