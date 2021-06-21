@@ -1,1 +1,0 @@
-# aws-sso-role-names-mapper

@@ -29,7 +29,7 @@
   "sourceIPAddress": "cloudformation.amazonaws.com",
   "userAgent": "cloudformation.amazonaws.com",
   "requestParameters": {
-    "roleName": "AWSReservedSSO_test-latest3_58dcaf6a4cfad558"
+    "roleName": "AWSReservedSSO_test-latest_58dcaf6a4cfad558"
   },
   "responseElements": null,
   "requestID": "2b43bedd-db6c-45ad-9702-84bc015c4b83",
