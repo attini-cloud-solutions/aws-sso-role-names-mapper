@@ -47,5 +47,5 @@ Deploy
 
 Cloudformation Stack
 ====================
-.. image::AWSSSORoleNamesMapper.png
+.. image:: AWSSSORoleNamesMapper.png
    :width: 400
