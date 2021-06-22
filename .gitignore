@@ -29,6 +29,6 @@ target/
 .gradle
 .project
 .settings
-.iml
+*.iml
 .vscode
 bin/

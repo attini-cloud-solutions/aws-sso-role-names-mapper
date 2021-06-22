@@ -1,6 +1,7 @@
 *************************
 AWS-SSO-ROLE-NAMES-MAPPER
 *************************
+
 Description
 ===========
 The Problem
@@ -31,8 +32,8 @@ Build
 1. Clone this repository into a folder of choice
 2. Run :code:`mvn clean package`
    
-   - [:code:`-Pnative`] For native compilation
-   - [:code:`-Dquarkus.native.container-build=true`] to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
+   - :code:`-Pnative` For native compilation
+   - :code:`-Dquarkus.native.container-build=true` to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
 3. For local testing, run :code:`mvn clean package && sam local invoke -t target/sam.jvm.yaml -e payload.json`
 
 Deploy
@@ -42,10 +43,11 @@ Deploy
 3. Set stackName, parameterStorePrefix, s3Bucket and s3BucketKey in pom.xml (Region should be us-east-1)
 4. Run :code:`mvn deploy`
    
-   - [:code:`-Pnative`] For native compilation
-   - [:code:`-Dquarkus.native.container-build=true`] to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
+   - :code:`-Pnative` For native compilation
+   - :code:`-Dquarkus.native.container-build=true` to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
 
 Cloudformation Stack
 ====================
 .. image:: AWSSSORoleNamesMapper.png
    :width: 400
+
