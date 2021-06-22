@@ -53,7 +53,7 @@ public class DistributeSSORolesService {
         return distributeSSORolesResponse;
     }
 
-    public DistributeSSORolesResponse handleMonthlyEvent(Set<Role> roles) {
+    public DistributeSSORolesResponse handleScheduledEvent(Set<Role> roles) {
 
         Set<Region> regions = ssmFacade.getAllRegions();
         DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();

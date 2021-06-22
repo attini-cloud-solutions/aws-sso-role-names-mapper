@@ -45,7 +45,7 @@ class DistributeSSORolesServiceTest {
 
 
     @Test
-    void handleMonthlyEvent_AllRolesHaveParameters_ShouldPass() {
+    void handleScheduledEvent_AllRolesHaveParameters_ShouldPass() {
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
         String prefix = environmentVariablesMock.getParameterStorePrefix();
         ParameterName database = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad"));
@@ -110,7 +110,7 @@ class DistributeSSORolesServiceTest {
         when(ssmFacadeMock.deleteParameters(any(SsmDeleteParametersRequest.class))).thenReturn(true);
 
 
-        DistributeSSORolesResponse actualResponse = distributeSSORolesService.handleMonthlyEvent(roles);
+        DistributeSSORolesResponse actualResponse = distributeSSORolesService.handleScheduledEvent(roles);
 
         assertEquals(expectedResponse.getParametersCreated(), actualResponse.getParametersCreated());
         assertEquals(expectedResponse.getParametersDeleted(), actualResponse.getParametersDeleted());

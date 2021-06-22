@@ -16,13 +16,6 @@ import javax.inject.Named;
 import java.util.Map;
 import java.util.Objects;
 
-// Compile with: mvn clean package -Pnative -Dquarkus.native.container-build=true
-
-// aws s3 cp target/function.zip s3://attini-artifact-store-us-east-1-855066048591/attini/tmp/labb/function.zip
-// aws cloudformation delete-stack --stack-name joel-test
-// aws cloudformation deploy --template cf-template.yaml --stack-name joel-test --capabilites CAPABILITY_IAM
-// mvn clean package && sam local invoke -t target/sam.jvm.yaml -e payload.json
-//
 @Named("DistributeSSORolesLambda")
 public class DistributeSSORolesLambda implements RequestHandler<Map<String, Object>, DistributeSSORolesResponse> {
 
@@ -51,9 +44,8 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
             } else {
                 throw new InvalidEventPayloadException("\"eventName\" field must be CreateRole or DeleteRole.");
             }
-        } else if (event.containsKey("resources") && event.get("resources").toString().contains("-TriggerMonthly-")) {
-            // TODO: Byt namn på Monthly till Scheduled, gör environment variabel som den andra
-            return distributeSSORolesService.handleMonthlyEvent(iamFacade.listAllRoles());
+        } else if (event.containsKey("resources") && event.get("resources").toString().contains("-TriggerOnSchedule-")) {
+            return distributeSSORolesService.handleScheduledEvent(iamFacade.listAllRoles());
         } else {
             throw new InvalidEventPayloadException();
         }
