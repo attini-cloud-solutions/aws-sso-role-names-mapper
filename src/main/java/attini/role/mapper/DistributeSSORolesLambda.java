@@ -47,7 +47,7 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
         } else if (event.containsKey("resources") && event.get("resources").toString().contains("-TriggerOnSchedule-")) {
             return distributeSSORolesService.handleScheduledEvent(iamFacade.listAllRoles());
         } else {
-            throw new InvalidEventPayloadException();
+            throw new InvalidEventPayloadException("payload must contain resources with event from TriggerOnSchedule.");
         }
     }
 }
