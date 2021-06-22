@@ -1,5 +1,5 @@
 *************************
-AWS-SSO-ROLE-NAMES-MAPPER
+AWS SSO role names mapper
 *************************
 
 Description
