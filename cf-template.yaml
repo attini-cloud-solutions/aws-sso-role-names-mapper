@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Distrubutes SSO PermissionSet role arn to all regions in SSM parameter store
+  Distributes SSO PermissionSet role arn to all regions in SSM parameter store
 
 Parameters:
   ParameterStorePrefix:
@@ -13,13 +13,17 @@ Parameters:
   S3BucketKey:
     Type: String
     Description: Packaged code
+  Schedule:
+    Type: String
+    Description: Cron/Rate Expression https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html
+    Default: cron(0 0 1 * ? *)
 
 Resources:
-  TriggerMonthly:
+  TriggerOnSchedule:
     Type: AWS::Events::Rule
     Properties:
       Description: Triggers on the creation of an SSO PermissionSet role
-      ScheduleExpression: cron(0 0 1 * ? *)
+      ScheduleExpression: !Ref Schedule
       Targets:
         - Arn: !GetAtt DistributeSSORoles.Arn
           Id: DistributeSSORoles

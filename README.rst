@@ -40,11 +40,22 @@ Deploy
 =============
 1. Clone this repository into a folder of choice
 2. Create a bucket to store zipped code (:code:`aws s3 mb s3://mybucket --region us-east-1`)
-3. Set stackName, parameterStorePrefix, s3Bucket and s3BucketKey in pom.xml (Region should be us-east-1)
+3. Configure deploy settings in pom.xml, see `Configuration`_
 4. Run :code:`mvn deploy`
    
    - :code:`-Pnative` For native compilation
    - :code:`-Dquarkus.native.container-build=true` to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
+
+Configuration
+=============
+In **pom.xml**, under the :code:`<properties>` configure the following variables:
+
+- :code:`<stackName>` Name of the Cloudformation stack
+- :code:`<parameterStorePrefix>` Prefix for parameter names in Parameter store. Example: "/*your-organisation*/role-name-mappings/"
+- :code:`<schedule>` Schedule for the event TriggerOnSchedule, see `AWS documentation <https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html>`_
+- :code:`<s3Bucket>` Bucket Name (don't include **s3://**). Example: "s3://**{s3Bucket}**/{s3BucketKey}"
+- :code:`<s3BucketKey>` Bucket object key. Example: "s3://{s3Bucket}/**{s3BucketKey}**"
+ 
 
 Cloudformation Stack
 ====================
