@@ -12,6 +12,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
+
 public class IamFacade {
     private final IamClient iamClient;
 
@@ -29,6 +31,6 @@ public class IamFacade {
         return listRolesResponses.stream()
                 .map(ListRolesResponse::roles)
                 .flatMap(List::stream)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 }

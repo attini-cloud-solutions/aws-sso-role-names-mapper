@@ -12,6 +12,9 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 public class SsmFacade {
 
     private final static Logger LOGGER = Logger.getLogger(SsmFacade.class);
@@ -45,14 +48,11 @@ public class SsmFacade {
      */
     public Set<Region> getAllRegions() {
         // Will exclude regions containing substring in the set.
-        Set<String> prefixes = new HashSet<>();
-        prefixes.add("-gov-");
-        prefixes.add("cn-");
-        GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions");
-        GetParametersByPathIterable iterable = ssmClientFactory
+        final Set<String> prefixes = Set.of("-gov-", "cn-");
+        return ssmClientFactory
                 .createGlobalSsmClient()
-                .getParametersByPathPaginator(requestBuilder.build());
-        return iterable
+                .getParametersByPathPaginator(GetParametersByPathRequest.builder().path("/aws/service/global-infrastructure/regions")
+                        .build())
                 .stream()
                 .parallel()
                 .map(GetParametersByPathResponse::parameters)
@@ -60,7 +60,7 @@ public class SsmFacade {
                 .map(Parameter::value)
                 .filter(value -> validParameter(value, prefixes))
                 .map(Region::of)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     private Boolean validParameter(String parameter, Set<String> prefixes) {
@@ -73,15 +73,14 @@ public class SsmFacade {
      */
     public Set<Parameter> getParameters(Region region) {
         try {
-            SsmClient ssmClient = ssmClientFactory.createSsmClient(region);
-            GetParametersByPathRequest.Builder requestBuilder = GetParametersByPathRequest.builder().path("/attini/aws-sso-role-names-mapper");
-            GetParametersByPathIterable iterable = ssmClient.getParametersByPathPaginator(requestBuilder.build());
-
-            return iterable.stream()
+            return ssmClientFactory
+                    .createSsmClient(region)
+                    .getParametersByPathPaginator(GetParametersByPathRequest.builder().path("/attini/aws-sso-role-names-mapper").build())
+                    .stream()
                     .parallel()
                     .map(GetParametersByPathResponse::parameters)
                     .flatMap(List::stream)
-                    .collect(Collectors.toSet());
+                    .collect(toSet());
         } catch (SsmException e) {
             LOGGER.warn("Could not get parameters from region: " + region, e);
             return Collections.emptySet();
@@ -93,14 +92,15 @@ public class SsmFacade {
      */
     public boolean deleteParameters(SsmDeleteParametersRequest ssmDeleteParametersRequest) {
         try {
-            SsmClient client = ssmClientFactory.createSsmClient(ssmDeleteParametersRequest.getRegion());
             DeleteParametersRequest deleteParametersRequest = DeleteParametersRequest
                     .builder()
                     .names(ssmDeleteParametersRequest.getParameterNames()
                             .stream().map(ParameterName::toString)
-                            .collect(Collectors.toList()))
+                            .collect(toList()))
                     .build();
-            client.deleteParameters(deleteParametersRequest);
+            ssmClientFactory
+                    .createSsmClient(ssmDeleteParametersRequest.getRegion())
+                    .deleteParameters(deleteParametersRequest);
             return true;
         } catch (SsmException e) {
             LOGGER.warn("Could not delete parameters in region: " + ssmDeleteParametersRequest.getRegion(), e);
@@ -113,8 +113,9 @@ public class SsmFacade {
      */
     public boolean deleteParameter(SsmDeleteParameterRequest ssmDeleteParameterRequest) {
         try {
-            SsmClient client = ssmClientFactory.createSsmClient(ssmDeleteParameterRequest.getRegion());
-            client.deleteParameter(getDeleteParameterRequest(ssmDeleteParameterRequest.getParameterName()));
+            ssmClientFactory
+                    .createSsmClient(ssmDeleteParameterRequest.getRegion())
+                    .deleteParameter(getDeleteParameterRequest(ssmDeleteParameterRequest.getParameterName()));
             LOGGER.info("Deleted: " + ssmDeleteParameterRequest.getParameterName().toString() + " in region: " + ssmDeleteParameterRequest.getRegion());
             return true;
         } catch (SsmException e) {
@@ -129,8 +130,9 @@ public class SsmFacade {
     public boolean putParameter(SsmPutParameterRequest ssmPutParameterRequest) {
         try {
             PutParameterRequest putParameterRequest = getCreateParameterRequest(ssmPutParameterRequest.getParameterName(), ssmPutParameterRequest.getPermissionSetName(), ssmPutParameterRequest.getIamRoleArn());
-            SsmClient client = ssmClientFactory.createSsmClient(ssmPutParameterRequest.getRegion());
-            client.putParameter(putParameterRequest);
+            ssmClientFactory
+                    .createSsmClient(ssmPutParameterRequest.getRegion())
+                    .putParameter(putParameterRequest);
             LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().toString() + " in region: " + ssmPutParameterRequest.getRegion());
             return true;
         } catch (SsmException e) {
