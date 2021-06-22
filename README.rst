@@ -44,3 +44,8 @@ Deploy
    
    - [:code:`-Pnative`] For native compilation
    - [:code:`-Dquarkus.native.container-build=true`] to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
+
+Cloudformation Stack
+====================
+.. image::AWSSSORoleNamesMapper.png
+   :width: 400
