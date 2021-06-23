@@ -95,11 +95,14 @@ Resources:
             Action:
               - ssm:PutParameter
               - ssm:DeleteParameter
-            Resource: !Sub arn:aws:ssm:*:${AWS::AccountId}:parameter/ParameterStorePrefix/*
+              - ssm:DeleteParameters
+            Resource: !Sub arn:aws:ssm:*:${AWS::AccountId}:*
           - Effect: Allow
             Action:
               - ssm:GetParametersByPath
-            Resource: !Sub arn:aws:ssm:*::parameter/aws/service/global-infrastructure/regions
+            Resource:
+              - arn:aws:ssm:*::parameter/aws/service/global-infrastructure/regions
+              - !Sub arn:aws:ssm:*:${AWS::AccountId}:parameter/*
           - Effect: Allow
             Action:
               - iam:ListRoles

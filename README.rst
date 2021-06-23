@@ -34,10 +34,10 @@ Build
    
    - :code:`-Pnative` For native compilation
    - :code:`-Dquarkus.native.container-build=true` to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
-3. For local testing, run :code:`mvn clean package && sam local invoke -t target/sam.jvm.yaml -e payload.json`
+3. For local testing, run :code:`mvn clean package && sam local invoke -t src/test/resources/sam.local.yaml -e src/test/resources/{payload}`
 
 Deploy
-=============
+======
 1. Clone this repository into a folder of choice
 2. Create a bucket to store zipped code (:code:`aws s3 mb s3://mybucket --region us-east-1`)
 3. Configure deploy settings in pom.xml, see `Configuration`_
@@ -45,6 +45,32 @@ Deploy
    
    - :code:`-Pnative` For native compilation
    - :code:`-Dquarkus.native.container-build=true` to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
+
+How to test in AWS
+==================
+
+TriggerOnSchedule
+-----------------
+1. Navigate to the lambda created by the Cloudformation stack
+2. Click on Test
+3. Create a new test event using the payload located in **src/test/resources/scheduledPayload.json**
+4. Run the Test
+   
+| If the test passed you can optionally set the TriggerOnSchedule event to trigger every minute and
+| then make sure the lambda is triggered.
+
+TriggerOnEvent
+--------------
+1. Navigate to the lambda created by the Cloudformation stack
+2. Click on Test
+3. Create a new test event for creating role using the payload located in **src/test/resources/createRolePayload.json**
+4. Run the Test to create parameter for test-role (notice, no such role is created in IAM)
+5. Make sure parameter was added by checking lambda response or Parameter Store
+6. Create a new test event for deleting role using the payload located in **src/test/resources/deleteRolePayload.json**
+7. Run the Test to delete parameter for test-role (again, no such role is deleted in IAM)
+8. Make sure parameter was deleted by checking lambda response or Parameter Store
+
+
 
 Configuration
 =============
@@ -56,6 +82,8 @@ In **pom.xml**, under the :code:`<properties>` configure the following variables
 - :code:`<s3Bucket>` Bucket Name (don't include **s3://**). Example: "s3://**{s3Bucket}**/{s3BucketKey}"
 - :code:`<s3BucketKey>` Bucket object key. Example: "s3://{s3Bucket}/**{s3BucketKey}**"
  
+
+
 
 Cloudformation Stack
 ====================

@@ -22,9 +22,10 @@
         <!-- mvn deploy setup -->
         <awsRegion>us-east-1</awsRegion>
         <stackName>some-stack-name</stackName>
-        <parameterStorePrefix>joel-parameter-test</parameterStorePrefix>
+        <!--parameterStorePrefix must start and end with a "/"-->
+        <parameterStorePrefix>/parameter-prefix/</parameterStorePrefix>
         <schedule>"rate(30 days)"</schedule>
-        <!-- Example for bucket: s3://attini/aws-sso-role-names-mapper/function.zip -->
+        <!-- Example for bucket: s3://your-bucket/aws-sso-role-names-mapper/function.zip -->
         <s3Bucket>attini</s3Bucket>
         <s3BucketKey>sso-role-names-mapper/function.zip</s3BucketKey>
 
