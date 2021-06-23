@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Distributes SSO PermissionSet role arn to all regions in SSM parameter store
+  Creates and maps IAM role names created by SSO to simple names in AWS Parameter store
 
 Parameters:
   ParameterStorePrefix:
@@ -22,7 +22,7 @@ Resources:
   TriggerOnSchedule:
     Type: AWS::Events::Rule
     Properties:
-      Description: Triggers on the creation of an SSO PermissionSet role
+      Description: Triggers on schedule
       ScheduleExpression: !Ref Schedule
       Targets:
         - Arn: !GetAtt DistributeSSORoles.Arn
@@ -30,7 +30,7 @@ Resources:
   TriggerOnEvent:
     Type: AWS::Events::Rule
     Properties:
-      Description: Triggers on the creation of an SSO PermissionSet role
+      Description: Triggers on the creation/deletion of an SSO PermissionSet role
       EventPattern: |
         {
           "source": [
@@ -80,7 +80,7 @@ Resources:
       CodeUri:
         Bucket: !Ref S3Bucket
         Key: !Ref S3BucketKey
-      Description: This lambda will put SSO Permission set role arns into SSM Parameter stor in all available regions
+      Description: This lambda maps IAM role names created by SSO to simple names in AWS Parameter store.
       Handler: not.used.in.provided.runtime
       MemorySize: 512
       Runtime: provided

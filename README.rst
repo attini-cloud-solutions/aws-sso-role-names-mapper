@@ -11,7 +11,7 @@ Generated IAM roles by SSO, have long and hard to remember names like:
 
 The Solution
 ------------
-| This project creates and maps IAM role names created by SSO to simple names in AWS Parameter store.
+| This project maps IAM role names created by SSO to simple names in AWS Parameter store.
 |
 | IAM Role Name: "*AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad*"
 | Name stored in Parameter Store: "*DatabaseAdministrator*"
@@ -22,42 +22,27 @@ Prerequisites
 - `AWS CLI <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`_ (If you are using AWS SSO you need AWS CLI version 2)
 - Configured `AWS CLI credentials <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html>`_
 - `Java JDK 11 <https://www.oracle.com/se/java/technologies/javase-jdk11-downloads.html>`_ (or later)
-- For native compilation, see `this guide <https://quarkus.io/guides/building-native-image#configuring-graalvm>`_
-- `Maven <https://maven.apache.org/install.html>`_ for installing project dependencies.
-
+- Configured GraalVM, see `this guide <https://quarkus.io/guides/building-native-image#configuring-graalvm>`_
+- `Maven <https://maven.apache.org/install.html>`_
+- `Docker <https://docs.docker.com/get-docker/>`_
 
 Build
-=============
+=====
+
+To build make sure you have `Docker <https://docs.docker.com/get-docker/>`_ running.
 
 1. Clone this repository into a folder of choice
-2. Run :code:`mvn clean package`
+2. Run :code:`mvn clean package -Pnative`
    
-   - :code:`-Pnative` For native compilation
-   - :code:`-Dquarkus.native.container-build=true` to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
-3. For local testing, run :code:`mvn clean package && sam local invoke -t src/test/resources/sam.local.yaml -e src/test/resources/{payload}`
-
 Deploy
 ======
 1. Clone this repository into a folder of choice
 2. Create a bucket to store zipped code (:code:`aws s3 mb s3://mybucket --region us-east-1`)
 3. Configure deploy settings in pom.xml, see `Configuration`_
-4. Run :code:`mvn deploy`
+4. Run :code:`mvn deploy -Pnative`
    
-   - :code:`-Pnative` For native compilation
-   - :code:`-Dquarkus.native.container-build=true` to build inside a container (Requires `Docker <https://docs.docker.com/get-docker/>`_)
-
 How to test in AWS
 ==================
-
-TriggerOnSchedule
------------------
-1. Navigate to the lambda created by the Cloudformation stack
-2. Click on Test
-3. Create a new test event using the payload located in **src/test/resources/scheduledPayload.json**
-4. Run the Test
-   
-| If the test passed you can optionally set the TriggerOnSchedule event to trigger every minute and
-| then make sure the lambda is triggered.
 
 TriggerOnEvent
 --------------
@@ -70,7 +55,15 @@ TriggerOnEvent
 7. Run the Test to delete parameter for test-role (again, no such role is deleted in IAM)
 8. Make sure parameter was deleted by checking lambda response or Parameter Store
 
-
+TriggerOnSchedule
+-----------------
+1. Navigate to the lambda created by the Cloudformation stack
+2. Click on Test
+3. Create a new test event using the payload located in **src/test/resources/scheduledPayload.json**
+4. Run the Test
+   
+| If the test passed you can optionally set the TriggerOnSchedule event to trigger every minute and
+| then make sure the lambda is triggered.
 
 Configuration
 =============
