@@ -1,42 +1,52 @@
 {
-  "eventVersion": "1.08",
-  "userIdentity": {
-    "type": "AssumedRole",
-    "principalId": "AROA4OFPIPBHWE4U7BMTY:attini-init-deploy",
-    "arn": "arn:aws:sts::855066048591:assumed-role/attini-init-deploy-lambda-role-eu-west-1/attini-init-deploy",
-    "accountId": "855066048591",
-    "accessKeyId": "ASIAILZOBBI44GWZ5H4Q",
-    "sessionContext": {
-      "sessionIssuer": {
-        "type": "Role",
-        "principalId": "AROA4OFPIPBHWE4U7BMTY",
-        "arn": "arn:aws:iam::855066048591:role/attini/attini-init-deploy-lambda-role-eu-west-1",
-        "accountId": "855066048591",
-        "userName": "attini-init-deploy-lambda-role-eu-west-1"
+  "version": "0",
+  "id": "070b64d5-6263-c7af-76d6-9bfe2a270772",
+  "detail-type": "AWS API Call via CloudTrail",
+  "source": "aws.iam",
+  "account": "855066048591",
+  "time": "2021-06-23T08:48:48Z",
+  "region": "us-east-1",
+  "resources": [],
+  "detail": {
+    "eventVersion": "1.08",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "principalId": "AROA4OFPIPBHWE4U7BMTY:attini-init-deploy",
+      "arn": "arn:aws:sts::855066048591:assumed-role/attini-init-deploy-lambda-role-eu-west-1/attini-init-deploy",
+      "accountId": "855066048591",
+      "accessKeyId": "ASIAILZOBBI44GWZ5H4Q",
+      "sessionContext": {
+        "sessionIssuer": {
+          "type": "Role",
+          "principalId": "AROA4OFPIPBHWE4U7BMTY",
+          "arn": "arn:aws:iam::855066048591:role/attini/attini-init-deploy-lambda-role-eu-west-1",
+          "accountId": "855066048591",
+          "userName": "attini-init-deploy-lambda-role-eu-west-1"
+        },
+        "webIdFederationData": {},
+        "attributes": {
+          "mfaAuthenticated": "false",
+          "creationDate": "2021-06-17T05:50:13Z"
+        }
       },
-      "webIdFederationData": {},
-      "attributes": {
-        "mfaAuthenticated": "false",
-        "creationDate": "2021-06-17T05:50:13Z"
-      }
+      "invokedBy": "cloudformation.amazonaws.com"
     },
-    "invokedBy": "cloudformation.amazonaws.com"
-  },
-  "eventTime": "2021-06-17T05:51:29Z",
-  "eventSource": "iam.amazonaws.com",
-  "eventName": "DeleteRole",
-  "awsRegion": "us-east-1",
-  "sourceIPAddress": "cloudformation.amazonaws.com",
-  "userAgent": "cloudformation.amazonaws.com",
-  "requestParameters": {
-    "roleName": "AWSReservedSSO_test-role_58dcaf6a4cfad558"
-  },
-  "responseElements": null,
-  "requestID": "2b43bedd-db6c-45ad-9702-84bc015c4b83",
-  "eventID": "14a8c35a-f851-4a89-8c67-d211dd783609",
-  "readOnly": false,
-  "eventType": "AwsApiCall",
-  "managementEvent": true,
-  "eventCategory": "Management",
-  "recipientAccountId": "855066048591"
+    "eventTime": "2021-06-17T05:51:29Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "DeleteRole",
+    "awsRegion": "us-east-1",
+    "sourceIPAddress": "cloudformation.amazonaws.com",
+    "userAgent": "cloudformation.amazonaws.com",
+    "requestParameters": {
+      "roleName": "AWSReservedSSO_test-role_58dcaf6a4cfad558"
+    },
+    "responseElements": null,
+    "requestID": "2b43bedd-db6c-45ad-9702-84bc015c4b83",
+    "eventID": "14a8c35a-f851-4a89-8c67-d211dd783609",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "eventCategory": "Management",
+    "recipientAccountId": "855066048591"
+  }
 }
