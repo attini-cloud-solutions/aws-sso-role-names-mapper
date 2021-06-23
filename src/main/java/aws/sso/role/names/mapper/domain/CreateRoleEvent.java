@@ -26,18 +26,16 @@ public class CreateRoleEvent {
         return new CreateRoleEvent(roleName, arn, parameterName);
     }
 
-    public static CreateRoleEvent create(EnvironmentVariables environmentVariables, Map<String, Object> eventPayload) {
+    public static CreateRoleEvent create(EnvironmentVariables environmentVariables, JsonNode eventDetailPayload) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode eventPayloadJson = objectMapper.valueToTree(eventPayload);
-            if (!eventPayloadJson.get("eventName").asText().equals("CreateRole")) {
+            if (!eventDetailPayload.get("eventName").asText().equals("CreateRole")) {
                 throw new WrongEventTypeException("\"eventName\" field must be CreateRole.");
             }
-            RoleName roleName = RoleName.create(eventPayloadJson.get("responseElements").get("role").get("roleName").asText());
+            RoleName roleName = RoleName.create(eventDetailPayload.get("responseElements").get("role").get("roleName").asText());
             if (!roleName.toString().startsWith("AWSReservedSSO")) {
                 throw new InvalidEventPayloadException("\"roleName\" field must start with AWSReservedSSO.");
             }
-            Arn arn = Arn.create(eventPayloadJson.get("responseElements").get("role").get("arn").asText());
+            Arn arn = Arn.create(eventDetailPayload.get("responseElements").get("role").get("arn").asText());
             ParameterName parameterName = ParameterName.create(environmentVariables.getParameterStorePrefix(),
                     PermissionSetName.create(roleName.toString()));
             return new CreateRoleEvent(roleName, arn, parameterName);

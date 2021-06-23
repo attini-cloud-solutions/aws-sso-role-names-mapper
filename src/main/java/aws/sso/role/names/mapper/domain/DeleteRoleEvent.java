@@ -23,14 +23,12 @@ public class DeleteRoleEvent {
         return new DeleteRoleEvent(roleName, parameterName);
     }
 
-    public static DeleteRoleEvent create(EnvironmentVariables environmentVariables, Map<String, Object> eventPayload) {
+    public static DeleteRoleEvent create(EnvironmentVariables environmentVariables, JsonNode eventDetailPayload) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode eventPayloadJson = objectMapper.valueToTree(eventPayload);
-            if (!eventPayloadJson.get("eventName").asText().equals("DeleteRole")) {
+            if (!eventDetailPayload.get("eventName").asText().equals("DeleteRole")) {
                 throw new WrongEventTypeException("\"eventName\" field must be DeleteRole.");
             }
-            RoleName roleName = RoleName.create(eventPayloadJson.get("requestParameters").get("roleName").asText());
+            RoleName roleName = RoleName.create(eventDetailPayload.get("requestParameters").get("roleName").asText());
             if (!roleName.toString().startsWith("AWSReservedSSO")) {
                 throw new InvalidEventPayloadException("\"roleName\" field must start with AWSReservedSSO.");
             }

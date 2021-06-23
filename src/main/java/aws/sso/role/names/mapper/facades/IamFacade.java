@@ -26,9 +26,12 @@ public class IamFacade {
      * @return All roles on IAM from path /aws-reserved/sso.amazonaws.com/
      */
     public Set<Role> listAllRoles() {
-        ListRolesIterable listRolesResponses = iamClient.listRolesPaginator(ListRolesRequest.builder().pathPrefix("/aws-reserved/sso.amazonaws.com/").build());
-
-        return listRolesResponses.stream()
+        return iamClient
+                .listRolesPaginator(ListRolesRequest
+                        .builder()
+                        .pathPrefix("/aws-reserved/sso.amazonaws.com/")
+                        .build())
+                .stream()
                 .map(ListRolesResponse::roles)
                 .flatMap(List::stream)
                 .collect(toSet());

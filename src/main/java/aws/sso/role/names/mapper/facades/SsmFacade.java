@@ -81,7 +81,9 @@ public class SsmFacade {
                     .flatMap(List::stream)
                     .collect(toSet());
         } catch (SsmException e) {
-            LOGGER.warn("Could not get parameters from region: " + region, e);
+            LOGGER.warn("Could not get parameters from region: " + region
+                    + " Error message: " + e.getMessage()
+                    + " Stack trace: " + Arrays.toString(e.getStackTrace()));
             return Collections.emptySet();
         }
     }
@@ -103,7 +105,10 @@ public class SsmFacade {
                     .deleteParameters(deleteParametersRequest);
             return true;
         } catch (SsmException e) {
-            LOGGER.warn("Could not delete parameters in region: " + ssmDeleteParametersRequest.getRegion(), e);
+            LOGGER.warn("Could not delete parameters: " + ssmDeleteParametersRequest.getParameterNames().toString()
+                    + " in region: " + ssmDeleteParametersRequest.getRegion()
+                    + " Error message: " + e.getMessage()
+                    + " Stack trace: " + Arrays.toString(e.getStackTrace()));
             return false;
         }
     }
@@ -119,8 +124,11 @@ public class SsmFacade {
             LOGGER.info("Deleted: " + ssmDeleteParameterRequest.getParameterName().toString() + " in region: " + ssmDeleteParameterRequest.getRegion());
             return true;
         } catch (SsmException e) {
-            LOGGER.warn("Could not delete parameter " + ssmDeleteParameterRequest.getParameterName().toString() + " in region: " + ssmDeleteParameterRequest.getRegion(), e);
-            return false;
+            LOGGER.warn("Could not delete parameter: " + ssmDeleteParameterRequest.getParameterName().toString()
+                    + " in region: " + ssmDeleteParameterRequest.getRegion()
+                    + " Error message: " + e.getMessage()
+                    + " Stack trace: " + Arrays.toString(e.getStackTrace()));
+           return false;
         }
     }
 
@@ -136,7 +144,10 @@ public class SsmFacade {
             LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().toString() + " in region: " + ssmPutParameterRequest.getRegion());
             return true;
         } catch (SsmException e) {
-            LOGGER.warn("Could not create parameter: " + ssmPutParameterRequest.getParameterName().toString() + " in region: " + ssmPutParameterRequest.getRegion(), e);
+            LOGGER.warn("Could not create parameter: " + ssmPutParameterRequest.getParameterName().toString()
+                    + " in region: " + ssmPutParameterRequest.getRegion()
+                    + " Error message: " + e.getMessage()
+                    + " Stack trace: " + Arrays.toString(e.getStackTrace()));
             return false;
         }
     }

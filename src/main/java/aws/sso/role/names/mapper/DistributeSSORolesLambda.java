@@ -9,6 +9,8 @@ import aws.sso.role.names.mapper.facades.IamFacade;
 import aws.sso.role.names.mapper.services.DistributeSSORolesService;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.logging.Logger;
 
 import javax.inject.Inject;
@@ -33,14 +35,17 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
 
     @Override
     public DistributeSSORolesResponse handleRequest(Map<String, Object> event, Context context) {
-        // TODO: Print event as json.
-        LOGGER.info("Got event " + event);
-        if (event.containsKey("eventName")) {
-            String eventName = event.get("eventName").toString();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode eventPayloadJson = mapper.valueToTree(event);
+        LOGGER.info("Got event: " + eventPayloadJson.toString());
+
+        JsonNode detail = mapper.valueToTree(event.get("detail"));
+        if (detail.has("eventName")) {
+            String eventName = detail.get("eventName").asText();
             if (eventName.equals("CreateRole")) {
-                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(environmentVariables, event));
+                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(environmentVariables, detail));
             } else if (eventName.equals("DeleteRole")) {
-                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(environmentVariables, event));
+                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(environmentVariables, detail));
             } else {
                 throw new InvalidEventPayloadException("\"eventName\" field must be CreateRole or DeleteRole.");
             }

@@ -3,6 +3,7 @@ package aws.sso.role.names.mapper.domain;
 import aws.sso.role.names.mapper.domain.exceptions.InvalidEventPayloadException;
 import aws.sso.role.names.mapper.domain.exceptions.WrongEventTypeException;
 import aws.sso.role.names.mapper.facades.EnvironmentVariables;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +34,8 @@ class DeleteRoleEventTest {
     public void create_CorrectJson() throws IOException {
 
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/deleteRolePayload.json").toFile(), Map.class);
-        DeleteRoleEvent actualDeleteRoleEvent = DeleteRoleEvent.create(environmentVariablesMock, event);
+        JsonNode detail = mapper.valueToTree(event.get("detail"));
+        DeleteRoleEvent actualDeleteRoleEvent = DeleteRoleEvent.create(environmentVariablesMock, detail);
 
         RoleName roleName = RoleName.create("AWSReservedSSO_test-role_58dcaf6a4cfad558");
         DeleteRoleEvent expectedDeleteRoleEvent = DeleteRoleEvent.create(
@@ -47,7 +49,8 @@ class DeleteRoleEventTest {
     public void create_WrongEventType_ShouldThrow() throws IOException {
 
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/createRolePayload.json").toFile(), Map.class);
-        assertThrows(WrongEventTypeException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, event));
+        JsonNode detail = mapper.valueToTree(event.get("detail"));
+        assertThrows(WrongEventTypeException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, detail));
 
     }
 
@@ -55,7 +58,8 @@ class DeleteRoleEventTest {
     public void create_BadRoleName_ShouldThrow() throws IOException {
 
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/deleteRoleBadRoleNamePayload.json").toFile(), Map.class);
-        assertThrows(InvalidEventPayloadException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, event));
+        JsonNode detail = mapper.valueToTree(event.get("detail"));
+        assertThrows(InvalidEventPayloadException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, detail));
 
     }
 
@@ -63,6 +67,7 @@ class DeleteRoleEventTest {
     public void create_MissingResponseElements_ShouldThrow() throws IOException {
 
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/deleteRoleMissingRequestParametersPayload.json").toFile(), Map.class);
-        assertThrows(InvalidEventPayloadException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, event));
+        JsonNode detail = mapper.valueToTree(event.get("detail"));
+        assertThrows(InvalidEventPayloadException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, detail));
     }
 }
