@@ -19,6 +19,7 @@ public class SsmFacade {
     private final SsmClientFactory ssmClientFactory;
     private final EnvironmentVariables environmentVariables;
 
+    //TODO ni borde inte behöva inject annotationen här
     @Inject
     public SsmFacade(SsmClientFactory ssmClientFactory, EnvironmentVariables environmentVariables) {
         this.ssmClientFactory = Objects.requireNonNull(ssmClientFactory, "ssmClientFactory");

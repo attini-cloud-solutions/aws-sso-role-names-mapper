@@ -17,6 +17,8 @@ import static java.util.stream.Collectors.toSet;
 public class IamFacade {
     private final IamClient iamClient;
 
+    //TODO ni borde inte behöva inject annotationen här
+
     @Inject
     public IamFacade(IamClient iamClient) {
         this.iamClient = Objects.requireNonNull(iamClient, "iamClient");

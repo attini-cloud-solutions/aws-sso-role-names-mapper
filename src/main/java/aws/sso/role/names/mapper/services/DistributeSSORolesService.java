@@ -26,6 +26,8 @@ public class DistributeSSORolesService {
         this.environmentVariables = Objects.requireNonNull(environmentVariables, "environmentVariables");
     }
 
+    //TODO försök att organisera om era metoder, publika metoder högst upp och interna stödmetoder längre ner (bra praxis i alla klasser)
+
     private static Set<Parameter> getParametersWithoutRole(Set<Role> roles, Set<Parameter> parameters) {
         return parameters.stream()
                 .filter(parameter -> parameterHasNoRole(roles, parameter))
