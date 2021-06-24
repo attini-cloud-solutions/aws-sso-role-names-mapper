@@ -9,21 +9,20 @@ public class ParameterName implements Comparable<ParameterName> {
         this.name = Objects.requireNonNull(value, "name");
     }
 
-    public static ParameterName create(String prefix, PermissionSetName permissionSetName) {
-        return new ParameterName(prefix + permissionSetName.toString());
+    public static ParameterName create(ParameterStorePrefix prefix, PermissionSetName permissionSetName) {
+        return new ParameterName(prefix.getPrefix() + permissionSetName.getName());
     }
 
     public static ParameterName create(String value) {
         return new ParameterName(value);
     }
 
-    @Override
-    public String toString() {
+    public String getName() {
         return name;
     }
 
     @Override
     public int compareTo(ParameterName name1) {
-        return this.name.compareTo(name1.toString());
+        return this.name.compareTo(name1.getName());
     }
 }

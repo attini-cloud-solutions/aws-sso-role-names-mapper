@@ -49,7 +49,6 @@ public class SsmFacadeTest {
 
     public SsmFacadeTest() {
         environmentVariablesMock = mock(EnvironmentVariables.class);
-        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn("/test/");
     }
 
     @BeforeEach
@@ -81,6 +80,7 @@ public class SsmFacadeTest {
 
     @Test
     public void getParameters_SsmError_ShouldReturnEmptySet() {
+        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn(ParameterStorePrefix.create("/test/"));
         when(ssmClientFactoryMock.createSsmClient(any(Region.class))).thenReturn(ssmClientMock);
         when(ssmClientMock.getParametersByPathPaginator(any(GetParametersByPathRequest.class)))
                 .thenReturn(getParametersByPathIterableMock);
@@ -120,7 +120,6 @@ public class SsmFacadeTest {
     public void deleteParameters_ValidRequest_ShouldReturnTrue() {
         when(ssmClientFactoryMock.createSsmClient(any(Region.class))).thenReturn(ssmClientMock);
         List<String> names = List.of("name1", "name2", "name3");
-         // TODO this test fails without lenient().
         lenient().when(ssmClientMock.deleteParameters(DeleteParametersRequest.builder().names(names).build()))
                 .thenReturn(DeleteParametersResponse.builder().deletedParameters(names).build());
         Set<ParameterName> params = names.stream().map(ParameterName::create).collect(toSet());

@@ -27,7 +27,7 @@ class DeleteRoleEventTest {
 
     public DeleteRoleEventTest() {
         environmentVariablesMock = mock(EnvironmentVariables.class);
-        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn("/test/");
+        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn(ParameterStorePrefix.create("/test/"));
     }
 
     @Test
@@ -35,13 +35,13 @@ class DeleteRoleEventTest {
 
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/deleteRolePayload.json").toFile(), Map.class);
         JsonNode detail = mapper.valueToTree(event.get("detail"));
-        DeleteRoleEvent actualDeleteRoleEvent = DeleteRoleEvent.create(environmentVariablesMock, detail);
+        DeleteRoleEvent actualDeleteRoleEvent = DeleteRoleEvent.create(environmentVariablesMock.getParameterStorePrefix(), detail);
 
         RoleName roleName = RoleName.create("AWSReservedSSO_test-role_58dcaf6a4cfad558");
         DeleteRoleEvent expectedDeleteRoleEvent = DeleteRoleEvent.create(
                 roleName,
-                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(), PermissionSetName.create(roleName.toString())));
-        assertEquals(expectedDeleteRoleEvent.getRoleName().toString(), actualDeleteRoleEvent.getRoleName().toString());
+                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(), PermissionSetName.create(roleName.getName())));
+        assertEquals(expectedDeleteRoleEvent.getRoleName().getName(), actualDeleteRoleEvent.getRoleName().getName());
 
     }
 
@@ -50,7 +50,7 @@ class DeleteRoleEventTest {
 
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/createRolePayload.json").toFile(), Map.class);
         JsonNode detail = mapper.valueToTree(event.get("detail"));
-        assertThrows(WrongEventTypeException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, detail));
+        assertThrows(WrongEventTypeException.class, () -> DeleteRoleEvent.create(environmentVariablesMock.getParameterStorePrefix(), detail));
 
     }
 
@@ -59,7 +59,7 @@ class DeleteRoleEventTest {
 
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/deleteRoleBadRoleNamePayload.json").toFile(), Map.class);
         JsonNode detail = mapper.valueToTree(event.get("detail"));
-        assertThrows(InvalidEventPayloadException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, detail));
+        assertThrows(InvalidEventPayloadException.class, () -> DeleteRoleEvent.create(environmentVariablesMock.getParameterStorePrefix(), detail));
 
     }
 
@@ -68,6 +68,6 @@ class DeleteRoleEventTest {
 
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/deleteRoleMissingRequestParametersPayload.json").toFile(), Map.class);
         JsonNode detail = mapper.valueToTree(event.get("detail"));
-        assertThrows(InvalidEventPayloadException.class, () -> DeleteRoleEvent.create(environmentVariablesMock, detail));
+        assertThrows(InvalidEventPayloadException.class, () -> DeleteRoleEvent.create(environmentVariablesMock.getParameterStorePrefix(), detail));
     }
 }

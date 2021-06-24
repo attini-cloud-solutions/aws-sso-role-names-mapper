@@ -27,22 +27,22 @@ public class CreateRoleEventTest {
 
     public CreateRoleEventTest() {
         environmentVariablesMock = mock(EnvironmentVariables.class);
-        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn("/test/");
+        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn(ParameterStorePrefix.create("/test/"));
     }
 
     @Test
     public void create_CorrectJson() throws IOException {
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/createRolePayload.json").toFile(), Map.class);
         JsonNode detail = mapper.valueToTree(event.get("detail"));
-        CreateRoleEvent actualCreateRoleEvent = CreateRoleEvent.create(environmentVariablesMock, detail);
+        CreateRoleEvent actualCreateRoleEvent = CreateRoleEvent.create(environmentVariablesMock.getParameterStorePrefix(), detail);
 
         RoleName roleName = RoleName.create("AWSReservedSSO_test-role_58dcaf6a4cfad558");
 
         CreateRoleEvent expectedCreateRoleEvent = CreateRoleEvent.create(
                 roleName,
                 Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-role_58dcaf6a4cfad558"),
-                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(), PermissionSetName.create(roleName.toString())));
-        assertEquals(expectedCreateRoleEvent.getRoleName().toString(), actualCreateRoleEvent.getRoleName().toString());
+                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(), PermissionSetName.create(roleName.getName())));
+        assertEquals(expectedCreateRoleEvent.getRoleName().getName(), actualCreateRoleEvent.getRoleName().getName());
         assertEquals(expectedCreateRoleEvent.getIamRoleName().toString(), actualCreateRoleEvent.getIamRoleName().toString());
 
     }
@@ -51,7 +51,7 @@ public class CreateRoleEventTest {
     public void create_WrongEventType_ShouldThrow() throws IOException {
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/deleteRolePayload.json").toFile(), Map.class);
         JsonNode detail = mapper.valueToTree(event.get("detail"));
-        assertThrows(WrongEventTypeException.class, () -> CreateRoleEvent.create(environmentVariablesMock, detail));
+        assertThrows(WrongEventTypeException.class, () -> CreateRoleEvent.create(environmentVariablesMock.getParameterStorePrefix(), detail));
 
     }
 
@@ -59,7 +59,7 @@ public class CreateRoleEventTest {
     public void create_BadRoleName_ShouldThrow() throws IOException {
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/createRoleBadRoleNamePayload.json").toFile(), Map.class);
         JsonNode detail = mapper.valueToTree(event.get("detail"));
-        assertThrows(InvalidEventPayloadException.class, () -> CreateRoleEvent.create(environmentVariablesMock, detail));
+        assertThrows(InvalidEventPayloadException.class, () -> CreateRoleEvent.create(environmentVariablesMock.getParameterStorePrefix(), detail));
 
     }
 
@@ -67,7 +67,7 @@ public class CreateRoleEventTest {
     public void create_MissingResponseElements_ShouldThrow() throws IOException {
         Map<String, Object> event = mapper.readValue(Paths.get("src/test/resources/createRoleMissingResponseElementsPayload.json").toFile(), Map.class);
         JsonNode detail = mapper.valueToTree(event.get("detail"));
-        assertThrows(InvalidEventPayloadException.class, () -> CreateRoleEvent.create(environmentVariablesMock, detail));
+        assertThrows(InvalidEventPayloadException.class, () -> CreateRoleEvent.create(environmentVariablesMock.getParameterStorePrefix(), detail));
 
     }
 }

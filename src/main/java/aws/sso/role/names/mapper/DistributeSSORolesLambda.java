@@ -38,16 +38,14 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
         ObjectMapper mapper = new ObjectMapper();
         JsonNode eventPayloadJson = mapper.valueToTree(event);
         LOGGER.info("Got event: " + eventPayloadJson.toString());
+        JsonNode detail = eventPayloadJson.get("detail");
 
-        JsonNode detail = mapper.valueToTree(event.get("detail")); //TODO lite väl att göra valueToTree på eventet två gånger, gör  eventPayloadJson.get("detail"); istället
-
-        //TODO skulle vara snyggt hör om man kunde unvika dom nästlade if-satserna. Inget krav dock
         if (detail.has("eventName")) {
             String eventName = detail.get("eventName").asText();
             if (eventName.equals("CreateRole")) {
-                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(environmentVariables, detail));
+                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(environmentVariables.getParameterStorePrefix(), detail));
             } else if (eventName.equals("DeleteRole")) {
-                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(environmentVariables, detail));
+                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(environmentVariables.getParameterStorePrefix(), detail));
             } else {
                 throw new InvalidEventPayloadException("\"eventName\" field must be CreateRole or DeleteRole.");
             }

@@ -22,30 +22,30 @@ public class DistributeSSORolesResponse {
 
 
     public void addCreatedParameter(ParameterName parameterName, Region region) {
-        parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.toString());
+        parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName());
     }
 
     public void addDeletedParameter(ParameterName parameterName, Region region) {
-        parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.toString());
+        parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName());
     }
 
     public void addCreatedParameter(ParameterName parameterName, Set<Region> regions) {
-        regions.forEach(region -> parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.toString()));
+        regions.forEach(region -> parametersCreated.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName()));
     }
 
     public void addDeletedParameter(ParameterName parameterName, Set<Region> regions) {
-        regions.forEach(region -> parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.toString()));
+        regions.forEach(region -> parametersDeleted.computeIfAbsent(region, p -> new TreeSet<>()).add(parameterName.getName()));
     }
 
     public void addCreatedParameters(Set<ParameterName> parameterNames, Region region) {
         parametersCreated.putIfAbsent(region, new TreeSet<>(parameterNames.stream()
-                .map(ParameterName::toString)
+                .map(ParameterName::getName)
                 .collect(Collectors.toSet())));
     }
 
     public void addDeletedParameters(Set<ParameterName> parameterNames, Region region) {
         parametersDeleted.putIfAbsent(region, new TreeSet<>(parameterNames.stream()
-                .map(ParameterName::toString)
+                .map(ParameterName::getName)
                 .collect(Collectors.toSet())));
     }
 

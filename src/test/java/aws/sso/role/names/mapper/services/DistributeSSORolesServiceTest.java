@@ -39,7 +39,7 @@ class DistributeSSORolesServiceTest {
         regions.add(Region.US_EAST_1);
         regions.add(Region.EU_NORTH_1);
         when(ssmFacadeMock.getAllRegions()).thenReturn(regions);
-        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn("/test/");
+        when(environmentVariablesMock.getParameterStorePrefix()).thenReturn(ParameterStorePrefix.create("/test/"));
         distributeSSORolesService = new DistributeSSORolesService(ssmFacadeMock, environmentVariablesMock);
     }
 
@@ -47,26 +47,26 @@ class DistributeSSORolesServiceTest {
     @Test
     void handleScheduledEvent_AllRolesHaveParameters() {
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
-        String prefix = environmentVariablesMock.getParameterStorePrefix();
+        ParameterStorePrefix prefix = environmentVariablesMock.getParameterStorePrefix();
         ParameterName database = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad"));
         ParameterName billing = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_Billing_c8106817c1780052"));
         ParameterName admin = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_AdministratorAccess_f627296b4ac7ac6c"));
         ParameterName toBeDeleted = ParameterName.create(prefix, PermissionSetName.create("AWSReservedSSO_DeleteMePlease_f627296b4ac7ac6c"));
 
         Parameter databaseParameter = Parameter.builder()
-                .name(database.toString())
+                .name(database.getName())
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_DatabaseAdministrator_e90c045f34e6a0ad")
                 .build();
         Parameter billingParameter = Parameter.builder()
-                .name(billing.toString())
+                .name(billing.getName())
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_Billing_c8106817c1780052")
                 .build();
         Parameter adminParameter = Parameter.builder()
-                .name(admin.toString())
+                .name(admin.getName())
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_AdministratorAccess_f627296b4ac7ac6c")
                 .build();
         Parameter toBeDeletedParameter = Parameter.builder()
-                .name(toBeDeleted.toString())
+                .name(toBeDeleted.getName())
                 .value("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_DeleteMePlease_f627296b4ac7ac6c")
                 .build();
 
@@ -125,7 +125,7 @@ class DistributeSSORolesServiceTest {
         CreateRoleEvent createRoleEvent = CreateRoleEvent.create(
                 roleName,
                 Arn.create("arn:aws:iam::855066048591:role/aws-reserved/sso.amazonaws.com/eu-west-1/AWSReservedSSO_test-latest3_58dcaf6a4cfad558"),
-                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(), PermissionSetName.create(roleName.toString())));
+                ParameterName.create(environmentVariablesMock.getParameterStorePrefix(), PermissionSetName.create(roleName.getName())));
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
 
         expectedResponse.addCreatedParameter(createRoleEvent.getParameterName(), this.regions);
@@ -149,7 +149,7 @@ class DistributeSSORolesServiceTest {
         DeleteRoleEvent deleteRoleEvent = DeleteRoleEvent.create(
                 roleName,
                 ParameterName.create(environmentVariablesMock.getParameterStorePrefix(),
-                        PermissionSetName.create(roleName.toString())));
+                        PermissionSetName.create(roleName.getName())));
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
 
         expectedResponse.addDeletedParameter(deleteRoleEvent.getParameterName(), this.regions);

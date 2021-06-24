@@ -6,7 +6,6 @@ import org.jboss.logging.Logger;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.model.*;
 
-import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
@@ -19,22 +18,20 @@ public class SsmFacade {
     private final SsmClientFactory ssmClientFactory;
     private final EnvironmentVariables environmentVariables;
 
-    //TODO ni borde inte behöva inject annotationen här
-    @Inject
     public SsmFacade(SsmClientFactory ssmClientFactory, EnvironmentVariables environmentVariables) {
         this.ssmClientFactory = Objects.requireNonNull(ssmClientFactory, "ssmClientFactory");
         this.environmentVariables = environmentVariables;
     }
 
     private static DeleteParameterRequest getDeleteParameterRequest(ParameterName parameterName) {
-        return DeleteParameterRequest.builder().name(parameterName.toString()).build();
+        return DeleteParameterRequest.builder().name(parameterName.getName()).build();
     }
 
     private static PutParameterRequest getCreateParameterRequest(ParameterName parameterName, PermissionSetName permissionSetName, Arn arn) {
         return PutParameterRequest.builder()
                 .type(ParameterType.STRING)
-                .name(parameterName.toString())
-                .description("Role arn for AWS SSO PermissionSet " + permissionSetName.toString())
+                .name(parameterName.getName())
+                .description("Role arn for AWS SSO PermissionSet " + permissionSetName.getName())
                 .value(arn.toString())
                 .overwrite(true)
                 .tier(ParameterTier.STANDARD)
@@ -75,7 +72,7 @@ public class SsmFacade {
         try {
             return ssmClientFactory
                     .createSsmClient(region)
-                    .getParametersByPathPaginator(GetParametersByPathRequest.builder().path(environmentVariables.getParameterStorePrefix()).build())
+                    .getParametersByPathPaginator(GetParametersByPathRequest.builder().path(environmentVariables.getParameterStorePrefix().getPrefix()).build())
                     .stream()
                     .parallel()
                     .map(GetParametersByPathResponse::parameters)
@@ -98,7 +95,7 @@ public class SsmFacade {
                     .builder()
                     .names(ssmDeleteParametersRequest.getParameterNames()
                             .stream()
-                            .map(ParameterName::toString)
+                            .map(ParameterName::getName)
                             .collect(toList()))
                     .build();
             ssmClientFactory
@@ -122,10 +119,10 @@ public class SsmFacade {
             ssmClientFactory
                     .createSsmClient(ssmDeleteParameterRequest.getRegion())
                     .deleteParameter(getDeleteParameterRequest(ssmDeleteParameterRequest.getParameterName()));
-            LOGGER.info("Deleted: " + ssmDeleteParameterRequest.getParameterName().toString() + " in region: " + ssmDeleteParameterRequest.getRegion());
+            LOGGER.info("Deleted: " + ssmDeleteParameterRequest.getParameterName().getName() + " in region: " + ssmDeleteParameterRequest.getRegion());
             return true;
         } catch (SsmException e) {
-            LOGGER.warn("Could not delete parameter: " + ssmDeleteParameterRequest.getParameterName().toString()
+            LOGGER.warn("Could not delete parameter: " + ssmDeleteParameterRequest.getParameterName().getName()
                     + " in region: " + ssmDeleteParameterRequest.getRegion()
                     + " Error message: " + e.getMessage()
                     + " Stack trace: " + Arrays.toString(e.getStackTrace()));
@@ -142,10 +139,10 @@ public class SsmFacade {
             ssmClientFactory
                     .createSsmClient(ssmPutParameterRequest.getRegion())
                     .putParameter(putParameterRequest);
-            LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().toString() + " in region: " + ssmPutParameterRequest.getRegion());
+            LOGGER.info("Saved: " + ssmPutParameterRequest.getParameterName().getName() + " in region: " + ssmPutParameterRequest.getRegion());
             return true;
         } catch (SsmException e) {
-            LOGGER.warn("Could not create parameter: " + ssmPutParameterRequest.getParameterName().toString()
+            LOGGER.warn("Could not create parameter: " + ssmPutParameterRequest.getParameterName().getName()
                     + " in region: " + ssmPutParameterRequest.getRegion()
                     + " Error message: " + e.getMessage()
                     + " Stack trace: " + Arrays.toString(e.getStackTrace()));
