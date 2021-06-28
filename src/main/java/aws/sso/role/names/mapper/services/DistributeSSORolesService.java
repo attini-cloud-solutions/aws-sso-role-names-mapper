@@ -1,19 +1,27 @@
 package aws.sso.role.names.mapper.services;
 
-import aws.sso.role.names.mapper.facades.EnvironmentVariables;
-import aws.sso.role.names.mapper.facades.SsmFacade;
-import aws.sso.role.names.mapper.domain.*;
-import org.jboss.logging.Logger;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.iam.model.Role;
-import software.amazon.awssdk.services.ssm.model.Parameter;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.*;
+import org.jboss.logging.Logger;
+
+import aws.sso.role.names.mapper.domain.Arn;
+import aws.sso.role.names.mapper.domain.CreateRoleEvent;
+import aws.sso.role.names.mapper.domain.DeleteRoleEvent;
+import aws.sso.role.names.mapper.domain.DistributeSSORolesResponse;
+import aws.sso.role.names.mapper.domain.ParameterName;
+import aws.sso.role.names.mapper.domain.PermissionSetName;
+import aws.sso.role.names.mapper.domain.SsmDeleteParameterRequest;
+import aws.sso.role.names.mapper.domain.SsmDeleteParametersRequest;
+import aws.sso.role.names.mapper.domain.SsmPutParameterRequest;
+import aws.sso.role.names.mapper.facades.EnvironmentVariables;
+import aws.sso.role.names.mapper.facades.SsmFacade;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.model.Role;
+import software.amazon.awssdk.services.ssm.model.Parameter;
 
 public class DistributeSSORolesService {
 

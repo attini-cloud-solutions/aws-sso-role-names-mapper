@@ -87,7 +87,7 @@ Resources:
       Timeout: 900
       Environment:
         Variables:
-          ParameterStorePrefix: !Ref ParameterStorePrefix
+          PARAMETER_STORE_PREFIX: !Ref ParameterStorePrefix
           DISABLE_SIGNAL_HANDLERS: true
       Policies:
         Statement:

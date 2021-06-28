@@ -1,18 +1,15 @@
 package aws.sso.role.names.mapper.facades;
 
+import static java.util.stream.Collectors.toSet;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListRolesRequest;
 import software.amazon.awssdk.services.iam.model.ListRolesResponse;
 import software.amazon.awssdk.services.iam.model.Role;
-import software.amazon.awssdk.services.iam.paginators.ListRolesIterable;
-
-import javax.inject.Inject;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toSet;
 
 public class IamFacade {
     private final IamClient iamClient;

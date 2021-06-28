@@ -65,7 +65,7 @@ public class SsmFacade {
     }
 
     /**
-     * @return Set of parameters from environment variable ParameterStorePrefix
+     * @return Set of parameters from environment variable PARAMETER_STORE_PREFIX
      * Empty if exception thrown or no parameters found.
      */
     public Set<Parameter> getParameters(Region region) {

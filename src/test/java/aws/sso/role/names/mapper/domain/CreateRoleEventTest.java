@@ -1,33 +1,38 @@
 package aws.sso.role.names.mapper.domain;
 
-import aws.sso.role.names.mapper.domain.exceptions.InvalidEventPayloadException;
-import aws.sso.role.names.mapper.domain.exceptions.WrongEventTypeException;
-import aws.sso.role.names.mapper.facades.EnvironmentVariables;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import aws.sso.role.names.mapper.domain.exceptions.InvalidEventPayloadException;
+import aws.sso.role.names.mapper.domain.exceptions.WrongEventTypeException;
+import aws.sso.role.names.mapper.facades.EnvironmentVariables;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 public class CreateRoleEventTest {
 
-    ObjectMapper mapper = new ObjectMapper();
+    private final static ObjectMapper mapper = new ObjectMapper();
+
+    @Mock
     EnvironmentVariables environmentVariablesMock;
 
-    public CreateRoleEventTest() {
-        environmentVariablesMock = mock(EnvironmentVariables.class);
+    @BeforeEach
+    void setUp() {
         when(environmentVariablesMock.getParameterStorePrefix()).thenReturn(ParameterStorePrefix.create("/test/"));
+
     }
 
     @Test

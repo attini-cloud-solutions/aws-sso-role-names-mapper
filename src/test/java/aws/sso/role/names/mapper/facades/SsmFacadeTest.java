@@ -1,30 +1,48 @@
 package aws.sso.role.names.mapper.facades;
 
-import aws.sso.role.names.mapper.domain.*;
-import aws.sso.role.names.mapper.factories.SsmClientFactory;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.regions.Region.EU_NORTH_1;
+import static software.amazon.awssdk.regions.Region.EU_WEST_1;
+import static software.amazon.awssdk.regions.Region.EU_WEST_2;
+import static software.amazon.awssdk.regions.Region.EU_WEST_3;
+import static software.amazon.awssdk.regions.Region.US_EAST_1;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import aws.sso.role.names.mapper.domain.Arn;
+import aws.sso.role.names.mapper.domain.ParameterName;
+import aws.sso.role.names.mapper.domain.ParameterStorePrefix;
+import aws.sso.role.names.mapper.domain.PermissionSetName;
+import aws.sso.role.names.mapper.domain.SsmDeleteParametersRequest;
+import aws.sso.role.names.mapper.domain.SsmPutParameterRequest;
+import aws.sso.role.names.mapper.factories.SsmClientFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.model.*;
+import software.amazon.awssdk.services.ssm.model.DeleteParametersRequest;
+import software.amazon.awssdk.services.ssm.model.DeleteParametersResponse;
+import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
+import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
+import software.amazon.awssdk.services.ssm.model.Parameter;
+import software.amazon.awssdk.services.ssm.model.PutParameterRequest;
+import software.amazon.awssdk.services.ssm.model.PutParameterResponse;
+import software.amazon.awssdk.services.ssm.model.SsmException;
 import software.amazon.awssdk.services.ssm.paginators.GetParametersByPathIterable;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.toSet;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static software.amazon.awssdk.regions.Region.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SsmFacadeTest {
@@ -38,7 +56,7 @@ public class SsmFacadeTest {
     SsmClient ssmClientMock;
 
     @Mock
-    private EnvironmentVariables environmentVariablesMock;
+    EnvironmentVariables environmentVariablesMock;
 
     @Mock
     GetParametersByPathIterable getParametersByPathIterableMock;
