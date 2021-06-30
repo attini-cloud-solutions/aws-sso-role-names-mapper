@@ -54,6 +54,8 @@ public class DistributeSSORolesService {
 
     public DistributeSSORolesResponse handleScheduledEvent(Set<Role> roles) {
 
+        LOGGER.info("AWS SSO Roles in this account: " + roles.toString());
+
         Set<Region> regions = ssmFacade.getAllRegions();
         DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();
 
