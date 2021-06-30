@@ -24,6 +24,8 @@ phases:
       - export AWS_REGION=$REGION
 
       - aws s3 cp target/function.zip s3://attini-artifacts-us-east-1/aws-sso-role-names-mapper/
+      - aws s3 cp cfn-template.yaml s3://attini-artifacts-us-east-1/aws-sso-role-names-mapper/
+
   post_build:
     commands:
       - rm -f ~/.awscredentials

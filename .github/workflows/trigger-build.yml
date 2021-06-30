@@ -21,4 +21,4 @@ jobs:
     - name: Run CodeBuild
       uses: aws-actions/aws-codebuild-run-build@v1.0.3
       with:
-        project-name: shared-attini-cli-build
+        project-name: shared-attini-setup-build
