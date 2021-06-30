@@ -19,7 +19,7 @@ public class IamFacade {
     }
 
     /**
-     * @return All roles on IAM from path /aws-reserved/sso.amazonaws.com/
+     * @return All roles on IAM with path /aws-reserved/sso.amazonaws.com/
      */
     public Set<Role> listAllRoles() {
         return iamClient
