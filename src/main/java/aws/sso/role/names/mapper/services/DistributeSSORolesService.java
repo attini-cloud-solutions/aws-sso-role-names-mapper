@@ -58,11 +58,19 @@ public class DistributeSSORolesService {
 
         Set<Region> regions = ssmFacade.getAllRegions();
 
+
         for (Region region : regions) {
-            Set<ParameterName> parameterNames = ssmFacade.deleteParameters(SsmDeleteParametersRequest.create(ssmFacade.getParameters(
-                    region), region));
-            if (!parameterNames.isEmpty()){
-                distributeSSORolesResponse.addDeletedParameters(parameterNames, region);
+            try {
+                Set<ParameterName> parameterNames = ssmFacade.deleteParameters(SsmDeleteParametersRequest.create(
+                        ssmFacade.getParameters(
+                                region),
+                        region));
+                if (!parameterNames.isEmpty()) {
+                    distributeSSORolesResponse.addDeletedParameters(parameterNames, region);
+                }
+            } catch (CouldNotGetParametersException e) {
+                LOGGER.warn("Could not get parameters from region: " + region + ", check if region is configured correctly.",
+                            e);
             }
         }
 
