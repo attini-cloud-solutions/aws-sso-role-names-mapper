@@ -33,8 +33,7 @@ Resources:
       Targets:
         - Arn: !GetAtt DistributeSSORoles.Arn
           Id: DistributeSSORoles
-          Input:
-            ExecutionType: Sync
+          Input: Sync
 
   TriggerOnEvent:
     Type: AWS::Events::Rule
