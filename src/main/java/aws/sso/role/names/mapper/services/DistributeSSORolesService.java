@@ -17,6 +17,7 @@ import aws.sso.role.names.mapper.domain.PermissionSetName;
 import aws.sso.role.names.mapper.domain.SsmDeleteParameterRequest;
 import aws.sso.role.names.mapper.domain.SsmDeleteParametersRequest;
 import aws.sso.role.names.mapper.domain.SsmPutParameterRequest;
+import aws.sso.role.names.mapper.domain.exceptions.CouldNotGetParametersException;
 import aws.sso.role.names.mapper.facades.EnvironmentVariables;
 import aws.sso.role.names.mapper.facades.SsmFacade;
 import software.amazon.awssdk.regions.Region;
@@ -60,12 +61,16 @@ public class DistributeSSORolesService {
         DistributeSSORolesResponse distributeSSORolesResponse = new DistributeSSORolesResponse();
 
         for (Region region : regions) {
-            Set<Parameter> parameters = ssmFacade.getParameters(region);
-            if (parameters.isEmpty()) {
-                LOGGER.info("No parameters found in region: " + region + ", check if region is configured correctly.");
-            } else {
+            try{
+                Set<Parameter> parameters = ssmFacade.getParameters(region);
+                if (parameters.isEmpty()) {
+                    LOGGER.info("No parameters found in region: " + region);
+                } else {
+                    distributeSSORolesResponse.addDeletedParameters(deleteParametersWithoutRole(roles, region, parameters), region);
+                }
                 distributeSSORolesResponse.addCreatedParameters(createParametersForAllSSORoles(roles, region), region);
-                distributeSSORolesResponse.addDeletedParameters(deleteParametersWithoutRole(roles, region, parameters), region);
+            }catch (CouldNotGetParametersException e){
+                LOGGER.warn("Could not get parameters from region: " + region + ", check if region is configured correctly.", e);
             }
         }
 
@@ -102,11 +107,7 @@ public class DistributeSSORolesService {
         Set<Parameter> parametersWithoutRole = getParametersWithoutRole(roles, parameters);
         if (!parametersWithoutRole.isEmpty()) {
             SsmDeleteParametersRequest ssmDeleteParametersRequest = SsmDeleteParametersRequest.create(parametersWithoutRole, region);
-            if (ssmFacade.deleteParameters(ssmDeleteParametersRequest)) {
-                return parametersWithoutRole.stream()
-                        .map(parameter -> ParameterName.create(parameter.name()))
-                        .collect(toSet());
-            }
+           return ssmFacade.deleteParameters(ssmDeleteParametersRequest);
         }
         return Collections.emptySet();
     }
@@ -124,9 +125,8 @@ public class DistributeSSORolesService {
     }
 
     private SsmPutParameterRequest buildSsmPutParameterRequest(Role role, Region region) {
-        Arn arn = Arn.create(role.arn());
         PermissionSetName permissionSetName = PermissionSetName.create(role.roleName());
         ParameterName parameterName = ParameterName.create(environmentVariables.getParameterStorePrefix(), permissionSetName);
-        return SsmPutParameterRequest.create(region, parameterName, permissionSetName, arn);
+        return SsmPutParameterRequest.create(region, parameterName, permissionSetName, Arn.create(role.arn()));
     }
 }

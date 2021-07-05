@@ -7,6 +7,7 @@ import aws.sso.role.names.mapper.domain.exceptions.InvalidEventPayloadException;
 import aws.sso.role.names.mapper.facades.EnvironmentVariables;
 import aws.sso.role.names.mapper.facades.IamFacade;
 import aws.sso.role.names.mapper.services.DistributeSSORolesService;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,13 +22,16 @@ import java.util.Objects;
 @Named("DistributeSSORolesLambda")
 public class DistributeSSORolesLambda implements RequestHandler<Map<String, Object>, DistributeSSORolesResponse> {
 
-    private final static Logger LOGGER = Logger.getLogger(DistributeSSORolesLambda.class);
+    private static final Logger LOGGER = Logger.getLogger(DistributeSSORolesLambda.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
     private final DistributeSSORolesService distributeSSORolesService;
     private final IamFacade iamFacade;
     private final EnvironmentVariables environmentVariables;
 
     @Inject
-    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService, IamFacade iamFacade, EnvironmentVariables environmentVariables) {
+    public DistributeSSORolesLambda(DistributeSSORolesService distributeSSORolesService,
+                                    IamFacade iamFacade,
+                                    EnvironmentVariables environmentVariables) {
         this.distributeSSORolesService = Objects.requireNonNull(distributeSSORolesService, "distributeSSORolesService");
         this.iamFacade = Objects.requireNonNull(iamFacade, "iamFacade");
         this.environmentVariables = Objects.requireNonNull(environmentVariables, "environmentVariables");
@@ -35,7 +39,6 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
 
     @Override
     public DistributeSSORolesResponse handleRequest(Map<String, Object> event, Context context) {
-        ObjectMapper mapper = new ObjectMapper();
         JsonNode eventPayloadJson = mapper.valueToTree(event);
         LOGGER.info("Got event: " + eventPayloadJson.toString());
         JsonNode detail = eventPayloadJson.get("detail");
@@ -43,13 +46,17 @@ public class DistributeSSORolesLambda implements RequestHandler<Map<String, Obje
         if (detail.has("eventName")) {
             String eventName = detail.get("eventName").asText();
             if (eventName.equals("CreateRole")) {
-                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(environmentVariables.getParameterStorePrefix(), detail));
+                return distributeSSORolesService.handleCreateRoleEvent(CreateRoleEvent.create(environmentVariables.getParameterStorePrefix(),
+                                                                                              detail));
             } else if (eventName.equals("DeleteRole")) {
-                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(environmentVariables.getParameterStorePrefix(), detail));
+                return distributeSSORolesService.handleDeleteRoleEvent(DeleteRoleEvent.create(environmentVariables.getParameterStorePrefix(),
+                                                                                              detail));
             } else {
                 throw new InvalidEventPayloadException("\"eventName\" field must be CreateRole or DeleteRole.");
             }
-        } else if (event.containsKey("resources") && event.get("resources").toString().contains("-TriggerOnSchedule-")) {
+        } else if (event.containsKey("resources") && event.get("resources")
+                                                          .toString()
+                                                          .contains("-TriggerOnSchedule-")) {
             return distributeSSORolesService.handleScheduledEvent(iamFacade.listAllRoles());
         } else {
             throw new InvalidEventPayloadException("payload must contain resources with event from TriggerOnSchedule.");

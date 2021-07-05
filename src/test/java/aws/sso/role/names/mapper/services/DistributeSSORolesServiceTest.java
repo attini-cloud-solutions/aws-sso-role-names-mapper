@@ -1,23 +1,34 @@
 package aws.sso.role.names.mapper.services;
 
-import aws.sso.role.names.mapper.domain.*;
-import aws.sso.role.names.mapper.facades.EnvironmentVariables;
-import aws.sso.role.names.mapper.facades.SsmFacade;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import aws.sso.role.names.mapper.domain.Arn;
+import aws.sso.role.names.mapper.domain.CreateRoleEvent;
+import aws.sso.role.names.mapper.domain.DeleteRoleEvent;
+import aws.sso.role.names.mapper.domain.DistributeSSORolesResponse;
+import aws.sso.role.names.mapper.domain.ParameterName;
+import aws.sso.role.names.mapper.domain.ParameterStorePrefix;
+import aws.sso.role.names.mapper.domain.PermissionSetName;
+import aws.sso.role.names.mapper.domain.RoleName;
+import aws.sso.role.names.mapper.domain.SsmDeleteParameterRequest;
+import aws.sso.role.names.mapper.domain.SsmDeleteParametersRequest;
+import aws.sso.role.names.mapper.domain.SsmPutParameterRequest;
+import aws.sso.role.names.mapper.facades.EnvironmentVariables;
+import aws.sso.role.names.mapper.facades.SsmFacade;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.ssm.model.Parameter;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DistributeSSORolesServiceTest {
@@ -107,7 +118,8 @@ class DistributeSSORolesServiceTest {
         when(ssmFacadeMock.getAllRegions()).thenReturn(this.regions);
         when(ssmFacadeMock.getParameters(any(Region.class))).thenReturn(parameters);
         when(ssmFacadeMock.putParameter(any(SsmPutParameterRequest.class))).thenReturn(true);
-        when(ssmFacadeMock.deleteParameters(any(SsmDeleteParametersRequest.class))).thenReturn(true);
+        when(ssmFacadeMock.deleteParameters(any(SsmDeleteParametersRequest.class)))
+                .thenReturn(Set.of(ParameterName.create(toBeDeleted.getName())));
 
 
         DistributeSSORolesResponse actualResponse = distributeSSORolesService.handleScheduledEvent(roles);

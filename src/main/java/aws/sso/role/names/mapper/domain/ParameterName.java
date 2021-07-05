@@ -25,4 +25,17 @@ public class ParameterName implements Comparable<ParameterName> {
     public int compareTo(ParameterName name1) {
         return this.name.compareTo(name1.getName());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ParameterName that = (ParameterName) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
 }
