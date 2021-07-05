@@ -72,7 +72,13 @@ TriggerOnSchedule
 -----------------
 1. Navigate to the lambda created by the Cloudformation stack
 2. Click on Test
-3. Create a new test event using the payload located in **src/test/resources/scheduledPayload.json**
+3. Create a new test event with the payload:
+  .. code-block:: JSON
+
+    {
+      "ExecutionType": "Sync"
+    }
+
 4. Run the Test
 
 | If the test passed you can optionally set the TriggerOnSchedule event to trigger every minute and
@@ -94,4 +100,24 @@ In **pom.xml**, under the :code:`<properties>` configure the following variables
 Cloudformation Stack
 ====================
 .. image:: AWSSSORoleNamesMapper.png
-   :width: 400
+  :width: 400
+
+
+
+Clean up
+====================
+
+If you no longer want to use the role mapper you can clean up your accounts with these steps:
+
+1. Trigger the DistributeSSORoles lambda with this event:
+
+.. warning:: This will delete all the ssm parameters under the namespace prefix that you have configured.
+
+
+.. code-block:: JSON
+
+  {
+  "ExecutionType": "Cleanup"
+  }
+
+2. Delete the sso role mapper CloudFormation stack.
