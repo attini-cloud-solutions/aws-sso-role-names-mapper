@@ -14,7 +14,7 @@ phases:
     commands:
       - cd $CODEBUILD_SRC_DIR
       - mvn clean package -Pnative -Dquarkus.native.container-build=false
-      - REVISION=1.0-SNAPSHOT #`mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version|grep -Ev '(^\[|Download\w+:)'`
+      - REVISION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) # 1.0-SNAPSHOT #`mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version|grep -Ev '(^\[|Download\w+:)'`
       - echo $REVISION
 
       - sed -i "s/__S3_KEY__/aws-sso-role-names-mapper\/${REVISION}-aws-sso-role-names-mapper.zip/g" template.yaml
