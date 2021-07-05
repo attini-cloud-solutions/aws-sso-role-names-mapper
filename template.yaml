@@ -1,18 +1,24 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Creates and maps IAM role names created by SSO to simple names in AWS Parameter store
+  Creates and maps IAM role Arns created by SSO to predictable names in AWS Parameter store
 
 Parameters:
   ParameterStorePrefix:
     Type: String
     Description: Prefix for the parameters in parameter store
+    Default: /attini/aws-sso-role-names/
+
   S3Bucket:
     Type: String
     Description: Name of S3 bucket containing packaged code
+    Default: attini-artifacts-us-east-1
+
   S3BucketKey:
     Type: String
     Description: Packaged code
+    Default: __S3_KEY__
+
   Schedule:
     Type: String
     Description: Cron/Rate Expression https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html
@@ -27,6 +33,9 @@ Resources:
       Targets:
         - Arn: !GetAtt DistributeSSORoles.Arn
           Id: DistributeSSORoles
+          Input:
+            ExecutionType: Sync
+
   TriggerOnEvent:
     Type: AWS::Events::Rule
     Properties:
@@ -107,4 +116,3 @@ Resources:
             Action:
               - iam:ListRoles
             Resource: "*"
-        
