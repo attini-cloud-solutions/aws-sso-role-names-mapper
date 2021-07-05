@@ -69,7 +69,7 @@ public class DistributeSSORolesService {
         return distributeSSORolesResponse;
     }
 
-    public DistributeSSORolesResponse handleScheduledEvent(Set<Role> roles) {
+    public DistributeSSORolesResponse handleSyncRolesEvent(Set<Role> roles) {
 
         LOGGER.info("AWS SSO Roles in this account: " + roles.toString());
 

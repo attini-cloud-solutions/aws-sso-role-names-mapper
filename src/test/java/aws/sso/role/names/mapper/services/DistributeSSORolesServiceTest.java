@@ -57,7 +57,7 @@ class DistributeSSORolesServiceTest {
 
 
     @Test
-    void handleScheduledEvent_AllRolesHaveParameters() {
+    void handleSyncRolesEvent_AllRolesHaveParameters() {
         DistributeSSORolesResponse expectedResponse = new DistributeSSORolesResponse();
         ParameterStorePrefix prefix = environmentVariablesMock.getParameterStorePrefix();
         ParameterName database = ParameterName.create(prefix,
@@ -130,7 +130,7 @@ class DistributeSSORolesServiceTest {
                 .thenReturn(Set.of(ParameterName.create(toBeDeleted.getName())));
 
 
-        DistributeSSORolesResponse actualResponse = distributeSSORolesService.handleScheduledEvent(roles);
+        DistributeSSORolesResponse actualResponse = distributeSSORolesService.handleSyncRolesEvent(roles);
 
         assertEquals(expectedResponse.getParametersCreated(), actualResponse.getParametersCreated());
         assertEquals(expectedResponse.getParametersDeleted(), actualResponse.getParametersDeleted());
