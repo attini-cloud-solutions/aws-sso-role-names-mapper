@@ -1,12 +1,13 @@
 package aws.sso.role.names.mapper.domain;
 
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ssm.model.Parameter;
+import static java.util.Objects.requireNonNull;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.requireNonNull;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.ssm.model.Parameter;
 
 public class SsmDeleteParametersRequest {
     private final Region region;
@@ -31,5 +32,19 @@ public class SsmDeleteParametersRequest {
 
     public Set<ParameterName> getParameterNames() {
         return parameterNames;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SsmDeleteParametersRequest that = (SsmDeleteParametersRequest) o;
+        return Objects.equals(region, that.region) && Objects.equals(parameterNames,
+                                                                     that.parameterNames);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(region, parameterNames);
     }
 }
